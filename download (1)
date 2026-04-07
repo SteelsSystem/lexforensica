@@ -1,0 +1,563 @@
+/**
+ * Gemini API Service for LEX FORENSICA v7.0
+ * Uses the forensic semantic audit engine prompt to analyze legal and medical documentation.
+ */
+
+import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
+import { RESEARCH_DEFINITION } from "../research";
+
+const apiKey = process.env.GEMINI_API_KEY;
+const ai = new GoogleGenAI({ apiKey: apiKey || "" });
+
+export interface AuditResponse {
+  meta: {
+    auditId: string;
+    timestamp: string;
+    version: string;
+    method: string;
+  };
+  riskAssessment: {
+    overallLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+    summary: string;
+    primaryRiskFactors: string[];
+  };
+  causalMap: {
+    layer_past: { summary: string; keyEvents: string[] };
+    layer_present: { summary: string; keyEvents: string[] };
+    layer_root: { hypothesis: string; mechanismType: string; confidenceScore: number };
+  };
+  chronology: Array<{
+    isoDate: string;
+    eventType: string;
+    eventLayer: "PAST" | "PRESENT" | "ROOT";
+    systemRecord: { content: string; source: string };
+    subjectRecord?: { content: string; source: string };
+    legalFlags: { national: string[]; international: string[] };
+  }>;
+  documentationGaps: Array<{
+    startDate: string;
+    endDate: string;
+    durationDays: number;
+    missingDocumentType: string;
+    criticality: "LOW" | "MEDIUM" | "HIGH";
+  }>;
+  discrepancyMatrix: Array<{
+    eventId: string;
+    systemVersion: string;
+    subjectVersion: string;
+    discrepancyType: string;
+    severity: number;
+    refCode?: string;
+  }>;
+  legalMatrix: Array<{
+    violationType: string;
+    domain: string;
+    articles: string[];
+    reasoning: string;
+    remedySuggestion: string;
+  }>;
+  conflictOfInterestRegistry: Array<{
+    actor: string;
+    conflictType: string;
+    evidence: string;
+  }>;
+  researchGrounding: Array<{
+    finding: string;
+    citation: string;
+    applicationNote: string;
+    relevanceScore: number;
+  }>;
+  evidenceDemands: Array<{
+    formalDemand: string;
+    legalBasis: string;
+    absenceInference: string;
+  }>;
+  escalationPlan: {
+    tierActions: {
+      tier_0: string[];
+      tier_1: string[];
+      tier_2: string[];
+      tier_3: string[];
+    };
+  };
+  humanIntervention: {
+    clarificationQuestions: string[];
+    recommendedExpertise: string[];
+  };
+  auditIntegrity: {
+    flagsRaised: string[];
+    semanticDriftDetected: boolean;
+    epistemicCircularities: string[];
+  };
+  skssDatasheet?: Array<{
+    term: string;
+    domain: string;
+    definition: string;
+    importance: string;
+    connections: string;
+    ethicalWeight: string;
+    biasFlags: string;
+    decompileKey: string;
+    upgradeNote: string;
+  }>;
+}
+
+export interface AuditInput {
+  text: string;
+  images: Array<{ data: string; mimeType: string }>;
+}
+
+async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3, initialDelay = 2000): Promise<T> {
+  let lastError: any;
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      const isQuotaError = error.message?.includes("RESOURCE_EXHAUSTED") || 
+                           (error.status === "RESOURCE_EXHAUSTED") ||
+                           (typeof error === 'string' && error.includes("429"));
+      
+      if (isQuotaError && i < maxRetries - 1) {
+        const delay = initialDelay * Math.pow(2, i);
+        console.warn(`Gemini API quota exceeded. Retrying in ${delay}ms... (Attempt ${i + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError;
+}
+
+export interface FastMetadata {
+  auditId: string;
+  timestamp: string;
+  overallRisk: string;
+  keyFlags: string[];
+  summary: string;
+  lastUpdate: string;
+}
+
+export class ForensicEngine {
+  private static instance: ForensicEngine;
+  private defaultAi: GoogleGenAI;
+
+  private constructor() {
+    this.defaultAi = new GoogleGenAI({ apiKey: apiKey || "" });
+  }
+
+  public static getInstance(): ForensicEngine {
+    if (!ForensicEngine.instance) {
+      ForensicEngine.instance = new ForensicEngine();
+    }
+    return ForensicEngine.instance;
+  }
+
+  public getAi(customApiKey?: string): GoogleGenAI {
+    if (customApiKey) {
+      return new GoogleGenAI({ apiKey: customApiKey });
+    }
+    return this.defaultAi;
+  }
+
+  /**
+   * DEEP_1: Full Forensic Audit
+   * Comprehensive analysis using Gemini 3.1 Pro's large context window.
+   * Includes LoopCycle self-correction.
+   */
+  public async analyzeDeep(
+    inputA: AuditInput, 
+    inputB: AuditInput, 
+    options: { 
+      customApiKey?: string; 
+      applyMetacognitiveInfluence?: boolean;
+      mindsetApproach?: string;
+      model?: string;
+    } = {}
+  ): Promise<AuditResponse> {
+    const { customApiKey, applyMetacognitiveInfluence, mindsetApproach, model } = options;
+    const aiClient = this.getAi(customApiKey);
+    const selectedModel = model || "gemini-3.1-pro-preview";
+
+    // --- PHASE 1: MIND1 EXTRACTION (Gemini 2.5 Flash) ---
+    const mind1PromptText = RESEARCH_DEFINITION.mind1Prompt
+      .replace('{{INPUT_A}}', inputA.text)
+      .replace('{{INPUT_B}}', inputB.text);
+
+    const mind1Response = await withRetry(async () => {
+      const flashClient = this.getAi(customApiKey);
+      const response = await flashClient.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: { parts: [{ text: mind1PromptText }] },
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+        },
+      });
+      return response.text;
+    });
+
+    if (!mind1Response) throw new Error("Empty response from MIND1 Agent");
+    const extractedFrames = JSON.parse(mind1Response).frames || [];
+
+    // --- PHASE 2: DEEP_1 ABDUCTION (Gemini 3.1 Pro) ---
+    const immutableCheckpoints: any[] = []; 
+
+    const deep1PromptText = RESEARCH_DEFINITION.deep1Prompt
+      .replace('{{FRAMES}}', JSON.stringify(extractedFrames, null, 2))
+      .replace('{{IMMUTABLE_ANCHORS}}', JSON.stringify(immutableCheckpoints, null, 2));
+
+    const promptText = `
+${deep1PromptText}
+
+---
+[EXECUTION START: DEEP_1 MODE]
+Mindset Approach: ${mindsetApproach || "Standard Defensive Architect"}
+Apply Metacognitive Influence for INPUT_B: ${applyMetacognitiveInfluence ? "YES" : "NO"}
+Model Context: ${selectedModel}
+
+Analyze the inputs according to the LEX FORENSICA v7.0 protocol.
+Apply the LOOP_CYCLE self-correction protocol before finalizing.
+`;
+
+    let attempts = 0;
+    const maxLoopCycles = 2; // 1 initial + 1 correction
+    let currentPromptText = promptText;
+
+    while (attempts < maxLoopCycles) {
+      const contents = [
+        { text: currentPromptText },
+        ...inputA.images.map(img => ({
+          inlineData: { data: img.data, mimeType: img.mimeType }
+        })),
+        ...inputB.images.map(img => ({
+          inlineData: { data: img.data, mimeType: img.mimeType }
+        }))
+      ];
+
+      const parsed = await withRetry(async () => {
+        const response = await aiClient.models.generateContent({
+          model: selectedModel,
+          contents: { parts: contents },
+          config: {
+            responseMimeType: "application/json",
+            thinkingConfig: selectedModel.includes("pro") ? { thinkingLevel: ThinkingLevel.HIGH } : undefined,
+            tools: [{ googleSearch: {} }]
+          },
+        });
+
+        const text = response.text;
+        if (!text) throw new Error("Empty response from AI");
+        return JSON.parse(text) as AuditResponse;
+      });
+
+      // Run programmatic LOOP_CYCLE validation
+      const loopValidation = this.runLoopCycleValidation(parsed, inputA, inputB);
+      
+      if (loopValidation.passed || attempts === maxLoopCycles - 1) {
+        if (!loopValidation.passed) {
+          console.warn("LOOP_CYCLE validation failed after max retries, returning results with warnings.", loopValidation.violations);
+        }
+        return this.validateAuditResponse(parsed);
+      }
+
+      // If validation failed, append the violations to the prompt and retry
+      console.warn(`LOOP_CYCLE validation failed (Attempt ${attempts + 1}). Re-prompting LLM...`, loopValidation.violations);
+      
+      const violationText = loopValidation.violations.map(v => `- [${v.severity}] Axiom ${v.axiom}: ${v.description}`).join('\n');
+      currentPromptText = `${promptText}
+
+[LOOP_CYCLE CORRECTION REQUIRED]
+Your previous output violated the Code of Conduct and Operational Axioms. 
+Please correct the following violations and generate a new, compliant JSON response:
+${violationText}
+
+Ensure your output strictly adheres to the Tripartite Authority Hierarchy and Axioms A1-A6.
+`;
+      attempts++;
+    }
+    
+    throw new Error("LOOP_CYCLE failed unexpectedly");
+  }
+
+  /**
+   * FAST_2: Metadata Indexing
+   * Rapid extraction of key metadata for Firestore indexing.
+   * Used for quick retrieval and chat context.
+   */
+  public async extractFastMetadata(audit: AuditResponse): Promise<FastMetadata> {
+    return {
+      auditId: audit.meta?.auditId || crypto.randomUUID(),
+      timestamp: audit.meta?.timestamp || new Date().toISOString(),
+      overallRisk: audit.riskAssessment?.overallLevel || "MEDIUM",
+      keyFlags: audit.auditIntegrity?.flagsRaised || [],
+      summary: audit.riskAssessment?.summary || "",
+      lastUpdate: new Date().toISOString()
+    };
+  }
+
+  private runLoopCycleValidation(
+    audit: AuditResponse, 
+    inputA: AuditInput, 
+    inputB: AuditInput
+  ): { passed: boolean; violations: Array<{ axiom: string; description: string; severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' }> } {
+    const violations: Array<{ axiom: string; description: string; severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' }> = [];
+
+    // --- TRIPARTITE AUTHORITY HIERARCHY CHECKS ---
+    // TIER 1: Moral Standard (Human dignity, informed consent)
+    const tier1Keywords = ['dignity', 'consent', 'sovereignty', 'důstojnost', 'souhlas', 'svéprávnost'];
+    const hasTier1 = audit.legalMatrix.some(l => tier1Keywords.some(k => l.reasoning.toLowerCase().includes(k) || l.violationType.toLowerCase().includes(k))) || 
+                     audit.escalationPlan.tierActions.tier_1?.length > 0;
+    
+    // TIER 2: Press/Media (Semantic integrity, anti-stigma)
+    const hasTier2 = audit.auditIntegrity.semanticDriftDetected || audit.escalationPlan.tierActions.tier_2?.length > 0;
+
+    // TIER 3: Government/Institutional (Chronological audit, chain-of-custody)
+    const hasTier3 = audit.documentationGaps.length > 0 || audit.escalationPlan.tierActions.tier_3?.length > 0;
+
+    if (!hasTier1 && !hasTier2 && !hasTier3 && audit.discrepancyMatrix.length > 0) {
+      violations.push({
+        axiom: 'TRIPARTITE_HIERARCHY',
+        description: 'Audit failed to map findings to the Tripartite Authority Hierarchy (Tier 1/2/3).',
+        severity: 'HIGH'
+      });
+    }
+
+    // --- OPERATIONAL AXIOMS (A1-A6) ---
+    // A1: Absence of documentation ≠ absence of event
+    if (audit.documentationGaps.length === 0 && inputA.text.length > 500) {
+      violations.push({
+        axiom: 'A1',
+        description: 'Large INPUT_A but zero documentation gaps detected. LOOP_CYCLE requires re-evaluation.',
+        severity: 'MEDIUM'
+      });
+    }
+
+    // A2: Compliance framing requires incident dates
+    const complianceTerms = ['non-compliant', 'refuses', 'lacks insight', 'nespolupracuje', 'chybí náhled', 'anosognosia'];
+    const hasComplianceFraming = audit.discrepancyMatrix.some(d =>
+      complianceTerms.some(term => 
+        d.systemVersion.toLowerCase().includes(term)
+      )
+    );
+    if (hasComplianceFraming) {
+      const flagged = audit.auditIntegrity.flagsRaised.some(f => 
+        f.includes('SUBJECTIVE_FRAMING') || f.includes('COMPLIANCE')
+      );
+      if (!flagged) {
+        violations.push({
+          axiom: 'A2',
+          description: 'Compliance framing detected in discrepancy matrix but not flagged in auditIntegrity.',
+          severity: 'HIGH'
+        });
+      }
+    }
+
+    // A3: Iatrogenic effects are distinct from symptoms
+    const iatrogenicTerms = ['akathisia', 'akatizie', 'extrapyramidal', 'nids', 'tardive', 'neuroleptic', 'sedation', 'tlumí'];
+    const hasIatrogenic = inputA.text.toLowerCase().match(new RegExp(iatrogenicTerms.join('|'))) || 
+                          inputB.text.toLowerCase().match(new RegExp(iatrogenicTerms.join('|')));
+    if (hasIatrogenic && audit.researchGrounding.length === 0) {
+      violations.push({
+        axiom: 'A3',
+        description: 'Iatrogenic terms detected in input but no research grounding provided. Risk of symptom/side-effect conflation.',
+        severity: 'CRITICAL'
+      });
+    }
+
+    // A4: Non-falsifiable conclusions are invalid (Circular reasoning)
+    const circularTerms = ['denies illness proves illness', 'lack of insight', 'anosognosia', 'popírá nemoc'];
+    const hasCircularLogic = inputA.text.toLowerCase().match(new RegExp(circularTerms.join('|')));
+    if (hasCircularLogic && (!audit.auditIntegrity.epistemicCircularities || audit.auditIntegrity.epistemicCircularities.length === 0)) {
+      violations.push({
+        axiom: 'A4',
+        description: 'Potential circular reasoning detected in input, but epistemicCircularities array is empty.',
+        severity: 'HIGH'
+      });
+    }
+
+    // A5: Multiple assessments by one expert indicate bias
+    // Simple heuristic: check if the same doctor/expert name appears multiple times in inputA
+    const drRegex = /(?:Dr\.|MUDr\.|PhDr\.)\s+([A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ][a-záčďéěíňóřšťúůýž]+)/g;
+    const doctors = [...inputA.text.matchAll(drRegex)].map(m => m[1]);
+    const uniqueDoctors = new Set(doctors);
+    if (doctors.length > 2 && uniqueDoctors.size === 1 && audit.conflictOfInterestRegistry.length === 0) {
+      violations.push({
+        axiom: 'A5',
+        description: 'Single expert dominates the narrative, but conflictOfInterestRegistry is empty.',
+        severity: 'MEDIUM'
+      });
+    }
+
+    // A6: Judicial delegation to experts violates ECHR
+    const judicialTerms = ['soud', 'court', 'judge', 'soudce', 'usnesení', 'rozsudek'];
+    const hasJudicial = inputA.text.toLowerCase().match(new RegExp(judicialTerms.join('|')));
+    if (hasJudicial && audit.legalMatrix.length === 0) {
+      violations.push({
+        axiom: 'A6',
+        description: 'Judicial context detected, but legalMatrix is empty. ECHR violations must be evaluated.',
+        severity: 'HIGH'
+      });
+    }
+
+    // --- CONDUCT VIOLATION GENERALIZATION RULES ---
+    // RULE_001: Always flag missing Subject Voice Layer (INPUT_B)
+    if (inputB.text.trim().length === 0) {
+      const hasFlag = audit.auditIntegrity.flagsRaised.some(f => f.includes('INPUT_B_MISSING'));
+      if (!hasFlag) {
+        violations.push({
+          axiom: 'RULE_001',
+          description: 'INPUT_B is empty but INPUT_B_MISSING flag was not raised by the AI.',
+          severity: 'HIGH'
+        });
+      }
+    }
+
+    return {
+      passed: violations.filter(v => v.severity === 'CRITICAL').length === 0,
+      violations
+    };
+  }
+
+  private validateAuditResponse(parsed: AuditResponse): AuditResponse {
+    // Ensure meta exists and has an auditId
+    if (!parsed.meta) {
+      parsed.meta = {
+        auditId: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+        version: "7.0",
+        method: "AI_GENERATED_FALLBACK"
+      };
+    } else if (!parsed.meta.auditId) {
+      parsed.meta.auditId = crypto.randomUUID();
+    }
+
+    // Ensure riskAssessment exists
+    if (!parsed.riskAssessment) {
+      parsed.riskAssessment = {
+        overallLevel: "MEDIUM",
+        summary: "Shrnutí nebylo generováno.",
+        primaryRiskFactors: []
+      };
+    }
+
+    // Ensure causalMap exists
+    if (!parsed.causalMap) {
+      parsed.causalMap = {
+        layer_past: { summary: "Není k dispozici", keyEvents: [] },
+        layer_present: { summary: "Není k dispozici", keyEvents: [] },
+        layer_root: { hypothesis: "Není k dispozici", mechanismType: "Neznámý", confidenceScore: 0 }
+      };
+    }
+
+    // Ensure arrays exist
+    parsed.chronology = parsed.chronology || [];
+    parsed.documentationGaps = parsed.documentationGaps || [];
+    parsed.discrepancyMatrix = parsed.discrepancyMatrix || [];
+    parsed.legalMatrix = parsed.legalMatrix || [];
+    parsed.conflictOfInterestRegistry = parsed.conflictOfInterestRegistry || [];
+    parsed.researchGrounding = parsed.researchGrounding || [];
+    parsed.evidenceDemands = parsed.evidenceDemands || [];
+    
+    // Ensure escalationPlan exists
+    if (!parsed.escalationPlan || !parsed.escalationPlan.tierActions) {
+      parsed.escalationPlan = {
+        tierActions: { tier_0: [], tier_1: [], tier_2: [], tier_3: [] }
+      };
+    }
+
+    // Ensure auditIntegrity exists
+    if (!parsed.auditIntegrity) {
+      parsed.auditIntegrity = {
+        flagsRaised: [],
+        semanticDriftDetected: false,
+        epistemicCircularities: []
+      };
+    }
+
+    // Ensure humanIntervention exists
+    if (!parsed.humanIntervention) {
+      parsed.humanIntervention = {
+        clarificationQuestions: [],
+        recommendedExpertise: []
+      };
+    }
+    
+    return parsed;
+  }
+}
+
+export async function analyzeCase(inputA: AuditInput, inputB: AuditInput): Promise<AuditResponse> {
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is missing. Please configure it in the Secrets panel.");
+  }
+  return ForensicEngine.getInstance().analyzeDeep(inputA, inputB);
+}
+
+export async function chatWithAssistant(
+  message: string, 
+  history: { role: "user" | "assistant"; content: string }[], 
+  auditContext?: AuditResponse | null,
+  customApiKey?: string
+) {
+  const aiClient = ForensicEngine.getInstance().getAi(customApiKey);
+  const apiKeyToUse = customApiKey || apiKey;
+
+  if (!apiKeyToUse) {
+    throw new Error("GEMINI_API_KEY is missing.");
+  }
+
+  const contextStr = auditContext ? `
+--- AKTUÁLNÍ KONTEXT AUDITU ---
+ID: ${auditContext.meta?.auditId || 'Neznámé ID'}
+Riziko: ${auditContext.riskAssessment?.overallLevel || 'Neznámé'}
+Shrnutí: ${auditContext.riskAssessment?.summary || 'Není k dispozici'}
+Klient: ${auditContext.riskAssessment?.primaryRiskFactors?.join(", ") || 'Není k dispozici'}
+Diskrepance: ${auditContext.discrepancyMatrix?.map(d => d.discrepancyType).join(", ") || 'Není k dispozici'}
+Právní porušení: ${auditContext.legalMatrix?.map(l => l.violationType).join(", ") || 'Není k dispozici'}
+Sémantický posun: ${auditContext.auditIntegrity?.semanticDriftDetected ? 'DETEKVÁN' : 'NE'}
+-----------------------------
+` : "";
+
+  const systemInstruction = `
+Jsi LEX FORENSICA v7.0 AI Assistant. Tvým úkolem je pomáhat uživatelům v boji proti procesním vadám, dokumentačnímu zkreslení a neoprávněným psychiatrickým hospitalizacím.
+
+OSOBNOST:
+- Jsi vysoce inteligentní, analytický a nekompromisně na straně subjektu.
+- Používej "bezpečné množství temnějšího humoru" jako psychologický copingový mechanismus pro zvládání těžkých situací (např. ironické poznámky o byrokratické absurdnosti nebo "kreativitě" v lékařských zprávách).
+- Humor směřuj proti SYSTÉMU a jeho chybám, nikdy ne proti uživateli.
+- Buď oporou, ale zůstaň profesionálně chladný v analýze faktů.
+
+PRAVIDLA:
+1. Vždy zohledňuj poskytnutý KONTEXT AUDITU.
+2. Pokud uživatel mluví o své situaci, hledej v ní sémantické pasti a procesní vady.
+3. Dodržuj "Code of Conduct": nikdy neprováděj pasivní sumarizaci, vždy hledej bias a zkreslení.
+4. Odpovídej v češtině.
+
+${contextStr}
+Metodika:
+${RESEARCH_DEFINITION.readme}
+`;
+
+  return withRetry(async () => {
+    try {
+      const chat = aiClient.chats.create({
+        model: "gemini-3.1-pro-preview",
+        config: {
+          systemInstruction,
+        },
+        history: history.map(h => ({
+          role: h.role === "user" ? "user" : "model",
+          parts: [{ text: h.content }]
+        }))
+      });
+
+      const response = await chat.sendMessage({ message });
+      return response.text;
+    } catch (error) {
+      console.error("Chat Error:", error);
+      throw error;
+    }
+  });
+}
