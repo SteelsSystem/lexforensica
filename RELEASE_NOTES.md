@@ -1,7 +1,7 @@
 # LEX FORENSICA v7.0 - Release Documentation
 
 ## Overview
-LEX FORENSICA v7.0 is an advanced forensic semantic audit engine designed to analyze dual inputs (system records vs. subject testimony) for medical and legal discrepancies. It leverages the Gemini 2.5 Flash model to identify time vacuums, semantic distortions, and potential human rights violations.
+LEX FORENSICA v7.0 is a domain-agnostic forensic semantic audit engine that analyzes dual inputs (institutional records vs. subject testimony) across any legal–civilisational context. It applies a two-phase AI pipeline (MIND1 extraction → DEEP_1 reasoning) to surface temporal gaps, semantic distortions, procedural violations, and human rights breaches — whether the source material is psychiatric, judicial, administrative, migratory, custodial, or any other institutional process where an individual's rights are adjudicated by a system.
 
 ## Technical Architecture
 
@@ -18,12 +18,13 @@ LEX FORENSICA v7.0 is an advanced forensic semantic audit engine designed to ana
 - **Firebase/Firestore**: Provides secure, scalable backend storage for encrypted audit records. User authentication is handled via Firebase Auth (Google Provider).
 
 ### 3. AI Integration
-- **Gemini API**: Utilizes `gemini-2.5-flash-preview-09-2025` for deep semantic analysis.
-- **Structured Output**: Enforces strict JSON schema responses from the LLM to populate the Discrepancy Matrix and Visual Context metrics reliably.
-- **Defense Synthesis Engine**: A secondary LLM prompt generates a formal legal appeal outline based on the identified discrepancies.
+- **Gemini API (Dual-Model Pipeline)**: MIND1 static preprocessing via `gemini-2.5-flash` (deterministic NLP extraction, temp=0.1) feeds into DEEP_1 forensic reasoning via `gemini-3.1-pro-preview` (neuro-symbolic abduction, ThinkingLevel.HIGH).
+- **Structured Output**: Enforces strict JSON schema responses (`responseMimeType: application/json`) to populate the Discrepancy Matrix, Legal Matrix, and Causal Map.
+- **LOOP_CYCLE Validation**: Programmatic post-generation check against six forensic Axioms (A1–A6) and three Conduct Violation Rules. Re-prompts on CRITICAL violations (max 2 cycles).
+- **Defense Synthesis Engine**: Generates formal legal defense drafts from structured audit findings. Domain-adaptive — supports ECHR, national civil codes, administrative law, and customisable legal frameworks.
 
 ## Core Features
-1. **Dual Input Ingestion**: Side-by-side text areas for official system records and subject testimony.
+1. **Dual Input Ingestion**: Side-by-side text areas for any official institutional records (INPUT_A) and subject/witness testimony (INPUT_B). Domain-agnostic — works with psychiatric, judicial, administrative, immigration, custodial, or any other institutional documentation.
 2. **AI Loop Cycle**: A visual progress indicator that provides feedback during the multi-step AI analysis process.
 3. **Legal Discrepancy Matrix**: A structured table detailing identified anomalies, categorized by severity and reference codes (e.g., `[REF-AX1-VOID]`).
 4. **CSV Export**: Allows users to download the discrepancy matrix for further analysis in spreadsheet applications.
