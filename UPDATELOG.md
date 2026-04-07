@@ -1,7 +1,114 @@
 # LEX FORENSICA — UPDATE LOG
 
 > Canonical record of architectural changes, known flaws, remediation status, and launch gate progress.  
-> Last updated: 2026-04-07 | Maintainer: SteelsSystem
+> Last updated: 2026-04-07 | Maintainer: SteelsSystem  
+> Repository: `SteelsSystem/AI-Forensica` (renamed from `testforensica`)
+
+---
+
+## [v8.0.0] — 2026-04-07 | Complete Rebuild — LLM Abstraction Layer + Encrypted Architecture
+
+### Summary
+
+Full ground-up rebuild of LEX FORENSICA addressing all 5 BLOCKERs and 8 language gaps from the v7.0 audit. The v8.0 codebase lives in `lex-forensica-v8/` on the `v8.0` branch. Repository renamed from `testforensica` to `AI-Forensica`.
+
+**CoC ↔ Code Coherence Score: 8/9 CYPHER-STATEs aligned** (up from 7/9)
+
+### Architecture
+
+| Component | Technology | Notes |
+|:---|:---|:---|
+| Framework | Vite + React 18 + TypeScript | Strict mode, no `any` in domain code |
+| Styling | Tailwind CSS v4 | Dark forensic theme |
+| LLM Layer | **ProviderRegistry pattern** | Swappable backends — Gemini default, OpenAI/Anthropic/local ready |
+| MIND1 | `gemini-2.5-flash` (temp=0.1) | Normalized Event Frame extraction |
+| DEEP_1 | `gemini-3.1-pro-preview` (thinking=HIGH) | Full forensic analysis + Google Search |
+| Defense | `gemini-3.1-pro-preview` (thinking=HIGH) | ECHR/CRPD counter-argument synthesis |
+| Encryption | AES-256-GCM + PBKDF2 (100k iter) | Web Crypto API, zero-knowledge |
+| Storage | Firestore — ALL paths encrypted | Audits, metadata, chat history, SKSS |
+| Auth | Firebase Auth (Google OAuth) | UID-scoped Firestore rules |
+| NLP | ForensicNLP singleton | CZ/EN/DE trilingual, A1-A6 axiom checks |
+
+### Pipeline: MIND1 → DEEP_1 → LOOP_CYCLE → DEFENSE_SYNTHESIS
+
+1. **MIND1** — Extract NormalizedEventFrames from dual inputs (INPUT_A vs INPUT_B, never conflated)
+2. **IMMUTABLE_ANCHORS** — Build FactCheckpoints from STRONG frames with SHA-256 hashes
+3. **DEEP_1** — Full forensic reasoning with thinking budget + web search grounding
+4. **LOOP_CYCLE** — Programmatic A1-A6 axiom validation; re-runs DEEP_1 up to 2× on CRITICAL violations
+5. **DEFENSE_SYNTHESIS** — Inside pipeline (resolves BLOCKER-03), generates ECHR/CRPD legal brief
+
+### LLM Abstraction Layer (New in v8.0)
+
+```
+src/services/llm/
+├── types.ts              — LLMProvider interface, PipelineConfig, ChatTurn
+├── provider-registry.ts  — Singleton registry, phase resolution, event system
+├── gemini-provider.ts    — Gemini SDK implementation (generateStructured/generateText/chat)
+└── index.ts              — initializeLLM(), resolvePhase() convenience exports
+```
+
+To add a new provider:
+1. Implement `LLMProvider` interface
+2. `registry.register(new MyProvider(apiKey))`
+3. `registry.setPipelineConfig({ deep1: { provider: 'my-provider', model: '...' } })`
+
+### BLOCKERs Resolved
+
+| ID | Issue | Resolution |
+|:---|:---|:---|
+| BLOCKER-01 | localStorage for sensitive data | **RESOLVED** — Zero localStorage usage. All data in encrypted Firestore. |
+| BLOCKER-02 | Firestore writes unencrypted | **RESOLVED** — `crypto.ts` (AES-256-GCM + PBKDF2), `db.ts` encrypts ALL paths. |
+| BLOCKER-03 | Defense Synthesis outside pipeline | **RESOLVED** — Phase 4 inside `analyzeDeep()`, executed after LOOP_CYCLE. |
+| BLOCKER-04 | IMMUTABLE_ANCHORS empty array | **RESOLVED** — `buildFactCheckpoints()` populates from STRONG frames with hashes. |
+| BLOCKER-05 | API key in URL query params | **RESOLVED** — `@google/genai` SDK only, routed through ProviderRegistry. |
+
+### Language Gaps Resolved
+
+| ID | Issue | Resolution |
+|:---|:---|:---|
+| LG-01 | No Czech legal terminology | **RESOLVED** — `constants.ts` (708 lines): CZ/EN/DE term lists, slang maps |
+| LG-02 | No German support | **RESOLVED** — Full DE term lists, ASSISTANT_PROMPT_DE |
+| LG-03 | No trilingual prompts | **RESOLVED** — `prompts.ts` (595 lines): MIND1/DEEP1/Defense/Assistant ×3 |
+| LG-04 | Slang detection missing | **RESOLVED** — `nlp-core.ts` slang maps for CZ colloquial terms |
+| LG-05 | No negation scope tracking | **RESOLVED** — NormalizedEventFrame.negationScope field |
+| LG-06 | No lexical escalation scoring | **RESOLVED** — NormalizedEventFrame.lexicalEscalation (0-3) |
+| LG-07 | No institution-specific patterns | **RESOLVED** — InstitutionType enum (9 types), pattern matching per type |
+| LG-08 | Assistant monolingual | **RESOLVED** — Language-switched system prompts (cs/en/de) |
+
+### UI Components (11)
+
+| Component | Lines | Purpose |
+|:---|:---|:---|
+| AuthGate | 78 | Firebase Google OAuth gate |
+| VaultModal | 96 | Zero-knowledge vault password creation/unlock |
+| DualInput | 308 | Dual-source input (INPUT_A / INPUT_B, never conflated) |
+| Dashboard | 155 | Tabbed audit results (6 tabs) |
+| RiskGauge | ~80 | Visual risk level + coherence score |
+| DiscrepancyMatrix | ~90 | A1-A6 violation entries with evidence |
+| LegalMatrix | ~70 | ECHR/CRPD article mapping |
+| ChronologyTimeline | ~75 | Temporal anomaly visualization |
+| DefenseDraft | ~95 | Defense synthesis display |
+| ChatAssistant | 129 | Multi-turn forensic assistant |
+| ExportPanel | ~130 | JSON/PDF export |
+
+### Build Verification
+
+- `npx tsc --noEmit` — **0 errors**
+- `npx vite build` — **63 modules transformed**, build OK (910 KB bundle)
+- No API keys in committed code (all via `import.meta.env.VITE_*`)
+
+### Known Limitations (v8.0)
+
+- Bundle size 910 KB (Gemini SDK heavy) — consider code splitting
+- SKSS Firestore persistence implemented but UI for browsing SKSS registry not yet built
+- No offline mode — requires Firestore connectivity
+- Export to PDF generates client-side (no server rendering)
+
+---
+
+## [v7.2-audit] — 2026-04-07 | System Instruction Coherence Audit
+
+Line-by-line verification of v7.2 System Instruction against codebase. Found 3 CRITICAL contradictions and scope conflict. Integrated into UPDATELOG. See commit `0589c13`.
 
 ---
 
