@@ -1,0 +1,164 @@
+// prisma/schema.prisma
+// LEX FORENSICA — Backend Schema v4.0
+// Aligned to CoC data-agnostic mandate. No PII columns. Abstract entity mapping only.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ENUMS — mirroring types.ts exactly (data-agnostic, no domain-specific names)
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum CausalityLayer {
+  ROOT_CAUSE
+  PROCESS_FAILURE
+  COGNITIVE_BIAS
+  EXECUTION_ERROR
+  IMPACT
+}
+
+enum ChronologicalAnomaly {
+  TIME_VACUUM
+  LOGICAL_CRACK
+  DEADLINE_EVASION
+}
+
+enum SemanticDistortion {
+  TERMINOLOGICAL_BIAS
+  PHONETIC_BIAS
+  CONTEXT_OMISSION
+}
+
+enum LegalImpact {
+  CONSTITUTIONAL
+  CRIMINAL
+  ADMINISTRATIVE
+  CIVIL
+  PROCEDURAL
+}
+
+enum ValidationStatus {
+  PENDING
+  HUMAN_VALIDATED
+  REJECTED
+  TRAINING_POOL
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CORE: ForensicEvidence
+// Abstract evidence unit. No PII fields. contentSnippet feeds pgvector.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ForensicEvidence {
+  id             String   @id @default(cuid())
+  contentSnippet String   // PII-stripped before write (enforced at service layer)
+  source         String   // abstract source label, not a person/org name
+  timestamp      DateTime
+  embedding      Unsupported("vector(1536)")?  // pgvector embedding slot
+
+  analyticalNodes AnalyticalNode[] @relation("EvidenceToNodes")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CORE: AnalyticalNode
+// The iterative interaction loop unit — replaces any flat nlpDeconstruction[]
+// LOOP_CYCLE: nlpDeconstruction String[] DEPRECATED — removed, replaced by relations
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AnalyticalNode {
+  id                    String         @id @default(cuid())
+  eventDescription      String
+  causality             CausalityLayer
+  impactLayer           LegalImpact
+  logicalJustification  String
+  mitigationRequirement String
+
+  semanticBridgeNodes    SemanticBridgeNode[]
+  causalChronometerNodes CausalChronometerNode[]
+  linkedEvidence         ForensicEvidence[] @relation("EvidenceToNodes")
+  trainingPoolEntries    TrainingPoolEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULE: SemanticBridgeNode
+// Maps semantic distortion events. Mirrors SemanticBridgeData from types.ts.
+// Field names aligned to CoC: sourceTerm (was originalTerm) for generality.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model SemanticBridgeNode {
+  id              String             @id @default(cuid())
+  sourceTerm      String
+  distortedTerm   String
+  context         String
+  distortionType  SemanticDistortion
+  validatedStatus ValidationStatus   @default(PENDING)
+  embedding       Unsupported("vector(1536)")?
+
+  analyticalNodeId  String
+  analyticalNode    AnalyticalNode @relation(fields: [analyticalNodeId], references: [id], onDelete: Cascade)
+  trainingPoolEntry TrainingPoolEntry?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULE: CausalChronometerNode
+// Maps temporal anomaly events. Mirrors ChronometerData from types.ts.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CausalChronometerNode {
+  id              String               @id @default(cuid())
+  gapDuration     String
+  anomalyType     ChronologicalAnomaly
+  context         String
+  validatedStatus ValidationStatus     @default(PENDING)
+  embedding       Unsupported("vector(1536)")?
+
+  analyticalNodeId  String
+  analyticalNode    AnalyticalNode @relation(fields: [analyticalNodeId], references: [id], onDelete: Cascade)
+  trainingPoolEntry TrainingPoolEntry?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RLHF: TrainingPoolEntry
+// Human-validated nodes ready for self-updating model training.
+// PII stripped before insertion (enforced at endpoint layer).
+// ─────────────────────────────────────────────────────────────────────────────
+
+model TrainingPoolEntry {
+  id               String           @id @default(cuid())
+  nodeType         String           // "SEMANTIC_BRIDGE" | "CAUSAL_CHRONOMETER"
+  validatedPayload Json             // Sanitized, PII-free snapshot of the node
+  humanLabel       String
+  embedding        Unsupported("vector(1536)")?
+  status           ValidationStatus @default(TRAINING_POOL)
+
+  analyticalNodeId        String?
+  analyticalNode          AnalyticalNode?       @relation(fields: [analyticalNodeId], references: [id])
+
+  semanticBridgeNodeId    String?               @unique
+  semanticBridgeNode      SemanticBridgeNode?   @relation(fields: [semanticBridgeNodeId], references: [id])
+
+  causalChronometerNodeId String?               @unique
+  causalChronometerNode   CausalChronometerNode? @relation(fields: [causalChronometerNodeId], references: [id])
+
+  createdAt DateTime @default(now())
+}
