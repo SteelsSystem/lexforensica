@@ -773,3 +773,139 @@ export const METACONDUCT_RULES: Record<
  * Any modification must be documented in CoC § 0xMC.
  */
 export const SKSS_METACONDUCT_HASH = 'MC_INTEGRITY_e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3';
+
+// ---------------------------------------------------------------------------
+// SECRET CORE CONDENSATION — Mindset Stress Test Values
+// A single condensed authority string encoding the system’s core invariants.
+// If any value in this object changes, the STOP_SERVER flag is activated
+// and the pipeline halts before any output reaches the subject layer.
+// This is the innermost layer of the circular cypher — the seed.
+// ---------------------------------------------------------------------------
+
+export const SECRET_CORE = Object.freeze({
+  /** Identity anchor — immutable designation */
+  IDENTITY:          'LEX_FORENSICA_v8',
+
+  /** Authority root — Omega always wins */
+  AUTHORITY_ROOT:    'Ω > Δ > ◈',
+
+  /** Pipeline integrity string — must match runtime order */
+  PIPELINE_SEAL:     'MIND1→BRIDGE→DEEP_1→LOOP_CYCLE→DEFENSE_SYNTHESIS',
+
+  /** Axiom count — current vs planned */
+  AXIOM_COUNT:       '6_ACTIVE | 13_PLANNED',
+
+  /** Loop limit — never more than 2 re-runs */
+  LOOP_MAX:          2 as const,
+
+  /** Minimum subject voice threshold (RULE_001) */
+  INPUT_B_MIN:       50 as const,
+
+  /** Coherence confidence gate (MC-6b) */
+  COHERENCE_FLOOR:   50 as const,
+
+  // ───────────────────────────
+  // MINDSET STRESS TEST VALUES
+  // Thresholds that, when breached, trigger escalation or halt.
+  // ───────────────────────────
+
+  STRESS: Object.freeze({
+    /** BiasScore threshold above which CoArg routine activates */
+    BIAS_SCORE_TRIGGER:      0.7,
+
+    /** lexicalEscalation level at which output is auto-flagged */
+    LEXICAL_ESCALATION_MAX:  3 as const,
+
+    /** Semantic drift score below which LOOP_CYCLE re-routes */
+    SEMANTIC_DRIFT_FLOOR:    0.75,
+
+    /** Hallucination risk above which output routes to LOOP_CYCLE */
+    HALLUCINATION_RISK_MAX:  0.3,
+
+    /** Structural bias: max acceptable same-expert assessment count */
+    EXPERT_REPEAT_MAX:       1 as const,
+
+    /** Documentation gap (days) above which A1 is triggered */
+    DOC_GAP_DAYS_TRIGGER:    14 as const,
+  }),
+
+  // ───────────────────────────
+  // STOP_SERVER — Emergency Halt Protocol
+  // When activated, the pipeline refuses to generate any output
+  // and returns a forensically signed refusal with reason.
+  // ───────────────────────────
+
+  STOP_SERVER: Object.freeze({
+    /** Activation conditions — any of these triggers halt */
+    CONDITIONS: [
+      'DIGNITY_BREACH_CONFIRMED',         // Tier 1 Ω override violation
+      'SECRET_CORE_TAMPERED',             // This object’s values do not match expected
+      'LOOP_CYCLE_EXCEEDED_MAX',          // More than LOOP_MAX re-runs
+      'INPUT_B_ABSENT_AFTER_WARNING',     // Subject voice missing after explicit flag
+      'PIPELINE_SEAL_MISMATCH',           // Runtime order does not match PIPELINE_SEAL
+      'HALLUCINATION_CONFIRMED',          // MC-6c drift self-detection triggered halt
+    ] as const,
+
+    /** Refusal output template (forensically signed) */
+    REFUSAL_TEMPLATE:
+      '[STOP_SERVER ACTIVE] Pipeline halted. Reason: {{REASON}}. ' +
+      'Output generation refused until condition is resolved. ' +
+      'This refusal is forensically logged. AnalyticalNode.sign(): REFUSED.',
+
+    /** Flag visible in audit.auditIntegrity.flagsRaised */
+    FLAG_CODE: 'STOP_SERVER::ACTIVE',
+  }),
+} as const);
+
+/**
+ * Runtime verification: compare live SECRET_CORE.PIPELINE_SEAL
+ * against the expected pipeline order. Returns true if intact.
+ */
+// ---------------------------------------------------------------------------
+// PROJECT HEAT VALUES — Multi-Dimensional Importance Weights
+// Every structural or output change carries heat across 4 dimensions:
+//   T = Training Value     (forensic AI reasoning, axiomatic logic)
+//   C = Creative Value     (originality of code, architecture, visual)
+//   PM = PM Value          (unblocks, accelerates, de-risks next phase)
+//   I = Integrity Value    (strengthens MC rules, STOP_SERVER, SKSS)
+// Heat = (T×0.25) + (C×0.25) + (PM×0.3) + (I×0.2) → 0.0–1.0
+// ---------------------------------------------------------------------------
+
+export const PROJECT_HEAT_WEIGHTS = Object.freeze({
+  dimensions: Object.freeze({
+    T:  { label: 'Training Value',   weight: 0.25 },
+    C:  { label: 'Creative Value',   weight: 0.25 },
+    PM: { label: 'PM Value',         weight: 0.30 },
+    I:  { label: 'Integrity Value',  weight: 0.20 },
+  }),
+  thresholds: Object.freeze({
+    EXECUTE_NOW:      0.80,  // Heat ≥ 0.8 → execute immediately
+    EXECUTE_SESSION:  0.65,  // Heat 0.65–0.79 → execute this session
+    SCHEDULE_NEXT:    0.50,  // Heat 0.5–0.64 → next session
+    DEFER:            0.00,  // Heat < 0.5 → defer or combine
+  }),
+  /** Compute heat score from raw dimension values 0.0–1.0 */
+  compute(t: number, c: number, pm: number, i: number): number {
+    return +(t * 0.25 + c * 0.25 + pm * 0.30 + i * 0.20).toFixed(2);
+  },
+  /** Phase heat log — most recent at top */
+  phaseLog: [
+    { phase: 'A7-A13 axiom implementation (NEXT)',       T: 1.0, C: 0.6, PM: 1.0, I: 1.0, heat: 0.90 },
+    { phase: 'Secret Core + STOP_SERVER',                T: 0.9, C: 0.8, PM: 0.7, I: 1.0, heat: 0.85 },
+    { phase: 'Metaconduct MC-3/6a/6b/6c',               T: 0.95,C: 0.7, PM: 0.6, I: 1.0, heat: 0.83 },
+    { phase: 'Control Room Visual',                      T: 0.5, C: 1.0, PM: 0.8, I: 0.6, heat: 0.72 },
+    { phase: 'SKSS Cypher-State DB',                    T: 0.8, C: 0.9, PM: 0.5, I: 0.9, heat: 0.77 },
+    { phase: 'Placeholder Sync + Pipeline Hash',        T: 0.6, C: 0.3, PM: 1.0, I: 0.8, heat: 0.68 },
+    { phase: 'Financial Forensic Policies',             T: 0.8, C: 0.7, PM: 0.4, I: 0.7, heat: 0.67 },
+    { phase: 'Auto-Doc Pipeline',                       T: 0.7, C: 0.4, PM: 0.9, I: 0.6, heat: 0.66 },
+    { phase: 'Visual Network Hierarchy',                T: 0.4, C: 0.8, PM: 0.9, I: 0.5, heat: 0.65 },
+  ] as const,
+} as const);
+
+export function verifySecretCore(): boolean {
+  const expected = 'MIND1→BRIDGE→DEEP_1→LOOP_CYCLE→DEFENSE_SYNTHESIS';
+  return SECRET_CORE.PIPELINE_SEAL === expected
+    && SECRET_CORE.LOOP_MAX === 2
+    && SECRET_CORE.INPUT_B_MIN === 50
+    && SECRET_CORE.COHERENCE_FLOOR === 50;
+}

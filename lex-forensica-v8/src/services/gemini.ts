@@ -28,6 +28,7 @@ import {
 } from '../lib/prompts';
 import { hashFact } from './crypto';
 import { ForensicNLP } from './nlp-core';
+import { verifySecretCore, SECRET_CORE } from '../lib/constants';
 import { resolvePhase, registry } from './llm';
 import type { LLMGenerationConfig, ChatTurn } from './llm';
 
@@ -60,6 +61,20 @@ class ForensicEngine {
 
   async analyzeDeep(input: AuditInput, _tier: SubscriptionTier): Promise<AuditResponse> {
     const startMs = Date.now();
+
+    // 0. SECRET CORE VERIFICATION — STOP_SERVER gate
+    //    If core invariants are tampered, refuse to generate output.
+    if (!verifySecretCore()) {
+      const scaffold = this.buildScaffoldAudit(input);
+      scaffold.auditIntegrity.flagsRaised.push(SECRET_CORE.STOP_SERVER.FLAG_CODE);
+      scaffold.humanIntervention.required = true;
+      scaffold.humanIntervention.reason =
+        SECRET_CORE.STOP_SERVER.REFUSAL_TEMPLATE.replace(
+          '{{REASON}}',
+          'PIPELINE_SEAL_MISMATCH — SECRET_CORE integrity check failed',
+        );
+      return scaffold;
+    }
 
     // 1. Phase 1 — MIND1: extract normalized event frames
     const frames = await this.extractFrames(
