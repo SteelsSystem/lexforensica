@@ -149,6 +149,18 @@ export interface PipelineSlot {
 /**
  * Default pipeline configuration — all Gemini.
  * Override per-slot to mix providers.
+ *
+ * MC-5 METACONDUCT DIRECTIVE (Structural Bias Prevention):
+ * Current config uses single provider (Gemini) for all phases.
+ * This creates monopoly epistemics (Cambridge: Epistemics for Forensics).
+ * For production deployments, diversify providers across phases:
+ *   mind1:     gemini (fast extraction, low temp)
+ *   deep1:     anthropic/claude (independent reasoning)
+ *   defense:   openai/gpt (adversarial counter-check)
+ *   assistant: gemini (conversational, cost-effective)
+ * Register additional providers via:
+ *   registry.register(new ClaudeProvider(apiKey));
+ *   registry.setPipelineConfig({ deep1: { provider: 'anthropic', model: 'claude-4-sonnet' } });
  */
 export const DEFAULT_PIPELINE_CONFIG: PipelineConfig = {
   mind1: {

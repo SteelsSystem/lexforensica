@@ -502,6 +502,127 @@ class ForensicNLP {
       });
     }
 
+    // ==================================================================
+    // METACONDUCT RULES (MC-3, MC-5, MC-6)
+    // Self-governing validation — the system applies its own axioms
+    // to its own output process. Research basis:
+    // - PMC7322564: metacognitive bias detection
+    // - Cambridge Epistemics for Forensics: monopoly vs democratic epistemics
+    // - Oxford MedLaw fwag001: procedural vs substantive rights gap
+    // ==================================================================
+
+    // ------------------------------------------------------------------
+    // MC-3 — Iatrogenic Regression Guard
+    // If LOOP_CYCLE re-runs (attempt > 0), compare violation counts
+    // between runs. If violations increased after re-run, flag as
+    // potential iatrogenic regression (the fix made things worse).
+    // ------------------------------------------------------------------
+    const loopLogEntries = audit.auditIntegrity.loopCycleLog;
+    const rerunCount = loopLogEntries.filter((l) =>
+      l.startsWith('[LOOP_CYCLE attempt'),
+    ).length;
+    if (rerunCount > 0) {
+      const currentViolationCount = audit.axiomaticViolations.length;
+      // If we have more violations after re-run than the LOOP_CYCLE
+      // detected issues that triggered the re-run, flag regression
+      const triggeredIssueCount = loopLogEntries.filter((l) =>
+        /CRITICAL|HIGH/.test(l),
+      ).length;
+      if (currentViolationCount > triggeredIssueCount + 2) {
+        violations.push({
+          axiom: 'RULE_001' as LoopCycleViolation['axiom'],
+          severity: AxiomSeverity.HIGH,
+          message:
+            `[MC-3] Potential iatrogenic regression: violation count (${currentViolationCount}) ` +
+            `exceeds pre-rerun trigger count (${triggeredIssueCount}) after ${rerunCount} LOOP_CYCLE re-run(s). ` +
+            `The re-run may have degraded output quality.`,
+          autoRemediation:
+            'Compare current AuditResponse with pre-rerun snapshot. If regression confirmed, revert to pre-rerun output and flag for human review.',
+        });
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // MC-6a — Substantive Cross-Correlation (not just procedural)
+    // Verify that A1 violations actually correlate with specific dates
+    // in documentationGaps. Procedural check = "is A1 present?"
+    // Substantive check = "does A1 reference real gap periods?"
+    // ------------------------------------------------------------------
+    const a1Violations = audit.axiomaticViolations.filter(
+      (v) => v.axiom === OperationalAxiom.A1_FORENSIC_SPOLIATION,
+    );
+    if (a1Violations.length > 0 && audit.documentationGaps.length > 0) {
+      // Check if any A1 violation evidence refs correlate with gap periods
+      const gapPeriods = audit.documentationGaps.map(
+        (g) => `${g.periodStart}-${g.periodEnd}`,
+      );
+      const hasSubstantiveCorrelation = a1Violations.some((v) =>
+        v.evidenceRefs.some((ref) =>
+          gapPeriods.some(
+            (gp) =>
+              v.finding.includes(gp.split('-')[0]) ||
+              v.finding.includes(gp.split('-')[1]),
+          ),
+        ),
+      );
+      if (!hasSubstantiveCorrelation) {
+        violations.push({
+          axiom: OperationalAxiom.A1_FORENSIC_SPOLIATION,
+          severity: AxiomSeverity.MEDIUM,
+          message:
+            '[MC-6a] A1 violations exist but none reference specific dates from documentationGaps — ' +
+            'substantive correlation missing. Violations may be procedurally present but substantively unanchored.',
+          autoRemediation:
+            'Cross-reference each A1 violation finding with documentationGaps date ranges. ' +
+            'Add explicit date references to violation findings.',
+        });
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // MC-6b — Coherence Score Confidence Gate
+    // If overallCoherenceScore is below threshold but no
+    // humanIntervention.required is set, the system is silently
+    // passing low-confidence output — judicial abandonment of own QA.
+    // ------------------------------------------------------------------
+    const coherenceScore = audit.auditIntegrity.overallCoherenceScore;
+    const humanRequired = audit.humanIntervention.required;
+    if (coherenceScore < 50 && !humanRequired) {
+      violations.push({
+        axiom: 'TRIPARTITE' as LoopCycleViolation['axiom'],
+        severity: AxiomSeverity.HIGH,
+        message:
+          `[MC-6b] Coherence score is ${coherenceScore}/100 (below 50) but humanIntervention.required is false — ` +
+          `system is passing low-confidence output without flagging for human review. ` +
+          `This is substantive validation failure (MC-6: judicial abandonment of own QA).`,
+        autoRemediation:
+          'Set humanIntervention.required = true and provide reason referencing the low coherence score. ' +
+          'Suggest expert type based on the dominant violation category.',
+      });
+    }
+
+    // ------------------------------------------------------------------
+    // MC-6c — Semantic Drift Self-Detection
+    // If semanticDriftTimeline has entries but semanticDriftDetected
+    // is false, the audit contradicts itself.
+    // ------------------------------------------------------------------
+    const hasDriftEntries =
+      Array.isArray(audit.semanticDriftTimeline) &&
+      audit.semanticDriftTimeline.length > 0;
+    const driftFlagSet = audit.auditIntegrity.semanticDriftDetected;
+    if (hasDriftEntries && !driftFlagSet) {
+      violations.push({
+        axiom: OperationalAxiom.A4_EPISTEMIC_CIRCULARITY,
+        severity: AxiomSeverity.MEDIUM,
+        message:
+          '[MC-6c] semanticDriftTimeline contains entries but semanticDriftDetected is false — ' +
+          'the audit reports drift data while simultaneously claiming no drift was detected. ' +
+          'This is an internal contradiction (A4: epistemic circularity within own output).',
+        autoRemediation:
+          'Set auditIntegrity.semanticDriftDetected = true when semanticDriftTimeline is non-empty.',
+      });
+    }
+
     return violations;
   }
 }
