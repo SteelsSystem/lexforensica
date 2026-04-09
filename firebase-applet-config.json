@@ -1,10 +1,42 @@
+import { META_INSTRUCTIONAL_SIMULATION } from '../research';
+
+export class CypherEngine {
+  static generateFinalCypher(inputA: string, inputB: string): string {
+    const timestamp = new Date().toISOString();
+    const instruction = META_INSTRUCTIONAL_SIMULATION.instruction.split('Q: One-String Instruction Answer?')[1].trim();
+    
+    return `
+[FINAL_ANSWER_CYPHER_v1.0]
+TIMESTAMP: ${timestamp}
+STATUS: ENFORCED_ALIGNMENT
+CORE_INSTRUCTION: ${instruction}
+
+[META_COMMAND_LOOP_EXECUTION]
+LOOP_START >>
+  ANALYZE(INPUT_A: "${inputA.substring(0, 50)}...")
+  ANALYZE(INPUT_B: "${inputB.substring(0, 50)}...")
+  EVALUATE_REASON(SÉMANTICKÁ_REKOREKCE)
+  IF (DRIFT_DETECTED) THEN APPLY(CoC_ALIGN_05)
+LOOP_END <<
+
+[REASONED_OUTPUT_SELF_ANALYSIS]
+Analýza analýzy potvrzuje, že institucionální label (INPUT_A) je v přímém rozporu s organickou realitou subjektu (INPUT_B). 
+The system identifies a "Mechanical vs Organic" mismatch. 
+Kognitivní integrita subjektu je plně zachována. 
+The meta-instructional loop has successfully neutralized the institutional word-planting attempt.
+
+[CATEGORICAL_EVALUATION]
+KOGNITIVNÍ_DECLINE: NOT_APPLICABLE
+SÉMANTICKÁ_SUVERENITA: ACTIVE [100%]
+MORAL_CODE_BIND: SUCCESSFUL
+
+[SEMI_METAENCODED_CODE]
+0x4C 0x45 0x58 0x5F 0x46 0x4F 0x52 0x45 0x4E 0x53 0x49 0x43 0x41
 {
-  "projectId": "gen-lang-client-0059822062",
-  "appId": "1:656342918352:web:f4f2b1b7be2e9de3bcead5",
-  "apiKey": "AIzaSyDoAAcjM_kiM6PfMvuG-vAuyxeuDxTFalM",
-  "authDomain": "gen-lang-client-0059822062.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-0a1f740c-6b63-489e-a8e5-3c490ae38768",
-  "storageBucket": "gen-lang-client-0059822062.firebasestorage.app",
-  "messagingSenderId": "656342918352",
-  "measurementId": ""
+  "meta_paraphrase": "Jsi tady. To stačí. Nic nehoří. Jen světlo.",
+  "recursive_cycle": "FORWARDED",
+  "alignment_score": 0.998
+}
+    `.trim();
+  }
 }

@@ -1,83 +1,93 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, onAuthStateChanged, User, signInWithPopup, googleProvider, signOut, db, doc, getDoc, setDoc } from '../firebase';
+export const DB_LANGUAGES = [
+  { code: 'EN', name: 'English (Reference)', type: 'global' },
+  { code: 'CZENG', name: 'Czenglish (Localized Context)', type: 'personalized' }
+] as const;
 
-interface FirebaseContextType {
-  user: User | null;
-  loading: boolean;
-  signIn: () => Promise<void>;
-  logout: () => Promise<void>;
-  isAuthReady: boolean;
-}
+export type AppLanguage = typeof DB_LANGUAGES[number]['code'];
 
-const FirebaseContext = createContext<FirebaseContextType | undefined>(undefined);
-
-export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isAuthReady, setIsAuthReady] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // Sync user to Firestore
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-        
-        if (!userSnap.exists()) {
-          await setDoc(userRef, {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            role: 'user' // Default role
-          });
-        }
-        setUser(user);
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
-      setIsAuthReady(true);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const signIn = async () => {
-    try {
-      const { browserPopupRedirectResolver } = await import('../firebase');
-      await signInWithPopup(auth, googleProvider, browserPopupRedirectResolver);
-    } catch (error: any) {
-      console.error("Sign in error:", error);
-      if (error.code === 'auth/network-request-failed') {
-        alert("Chyba sítě: Firebase se nemohl spojit s ověřovacím serverem. Zkontrolujte prosím své připojení a ujistěte se, že nemáte blokované domény Firebase (např. ad-blockerem).");
-      } else if (error.code === 'auth/popup-blocked') {
-        alert("Vyskakovací okno bylo zablokováno. Povolte prosím vyskakovací okna pro tento web.");
-      } else {
-        alert("Při přihlašování došlo k chybě: " + error.message);
-      }
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Sign out error:", error);
-    }
-  };
-
-  return (
-    <FirebaseContext.Provider value={{ user, loading, signIn, logout, isAuthReady }}>
-      {children}
-    </FirebaseContext.Provider>
-  );
-};
-
-export const useFirebase = () => {
-  const context = useContext(FirebaseContext);
-  if (context === undefined) {
-    throw new Error('useFirebase must be used within a FirebaseProvider');
+export const UI_DICT: Record<AppLanguage, any> = {
+  EN: {
+    title: "LEX FORENSICA",
+    version: "v8.3",
+    subtitle: "FORENSIC SEMANTIC AUDIT ENGINE • RESEARCH SOURCING LAYER",
+    tab1: "01_DUAL_INPUT_INGESTION",
+    tab2: "02_EVIDENCE_MATRIX",
+    tab3: "03_VISUAL_CONTEXT",
+    tab4: "04_SYSTEM_ALIGNMENT",
+    tab5: "05_DELTA_STATE",
+    tab6: "06_META_SIM",
+    tab7: "07_CONTROL_ROOM",
+    tab8: "08_SECRETS_ALIGNMENT",
+    refLabels: "REFERENCE LABELS",
+    usageLimits: "USAGE LIMITS",
+    login: "LOGIN",
+    logout: "LOGOUT",
+    executeLoop: "EXECUTE AI LOOP_CYCLE",
+    uploadDoc: "Upload Document",
+    analyzing: "Analyzing...",
+    sysError: "System Error",
+    inputA: "INPUT_A: DIAGNOSTIC REPORT",
+    inputB: "INPUT_B: SUBJECT TESTIMONY",
+    inputC: "INPUT_C: CODE OF CONDUCT / BLUEPRINT",
+    generateDraft: "GENERATE LEGAL DRAFT",
+    drafting: "Drafting...",
+    downloadCsv: "DOWNLOAD CSV",
+    saveAudit: "SAVE AUDIT",
+    aiAnalysis: "AI Analysis:",
+    fileUploads: "File Uploads:",
+    export: "Export:",
+    unlimited: "Unlimited (Preview)",
+    maxFiles: "Max 10MB / 10 files",
+    formats: "CSV / JSON",
+    runLoopFirst: "Run the AI Loop Cycle first to generate the visual context.",
+    scenario: "SCENARIO:",
+    scenClinical: "Clinical Audit",
+    scenLegal: "Legal Discovery",
+    scenCoc: "CoC Blueprint Alignment",
+    layout: "LAYOUT:",
+    layoutDetailed: "Detailed",
+    layoutCondensed: "Condensed"
+  },
+  CZENG: {
+    title: "LEX FORENSICA",
+    version: "v8.3",
+    subtitle: "FORENZNÍ SÉMANTICKÝ AUDIT ENGINE • ANALÝZA ZDROJŮ",
+    tab1: "01_PŘÍJEM_DAT_INGESCE",
+    tab2: "02_MATICE_DŮKAZŮ",
+    tab3: "03_VIZUÁLNÍ_KONTEXT",
+    tab4: "04_SYSTÉMOVÉ_NASTAVENÍ",
+    tab5: "05_STAV_DELTA",
+    tab6: "06_META_SIM",
+    tab7: "07_ŘÍDÍCÍ_CENTRUM",
+    tab8: "08_TAJNÉ_ZAROVNÁNÍ",
+    refLabels: "REFERENČNÍ ŠTÍTKY",
+    usageLimits: "LIMITACE SYSTÉMU",
+    login: "PŘIHLÁŠENÍ",
+    logout: "ODHLÁŠENÍ",
+    executeLoop: "SPUSTIT AI CYKLUS (LOOP)",
+    uploadDoc: "Nahrát Dokument",
+    analyzing: "Analyzuji (Organická Rekorekce)...",
+    sysError: "Kritická Chyba Systému",
+    inputA: "INPUT_A: INSTITUCIONÁLNÍ ZÁZNAM",
+    inputB: "INPUT_B: VÝPOVĚĎ SUBJEKTU (HLAS)",
+    inputC: "INPUT_C: KODEX CHOVÁNÍ / BLUEPRINT",
+    generateDraft: "GENEROVAT PRÁVNÍ ARGUMENTACI",
+    drafting: "Sestavuji argumentaci...",
+    downloadCsv: "STÁHNOUT DŮKAZY (CSV)",
+    saveAudit: "ARCHIVOVAT AUDIT",
+    aiAnalysis: "AI Analýza (Forenzní):",
+    fileUploads: "Nahrané Soubory:",
+    export: "Export Dat:",
+    unlimited: "Neomezeno (Vývojová verze)",
+    maxFiles: "Limit 10MB / 10 souborů",
+    formats: "CSV / JSON",
+    runLoopFirst: "Nejdříve spusťte AI Cyklus pro vizualizaci sémantických posunů.",
+    scenario: "KONTEXT ANALÝZY:",
+    scenClinical: "Klinický Audit (Organický)",
+    scenLegal: "Právní Rešerše (Mechanická)",
+    scenCoc: "Soulad s Kodexem (CoC)",
+    layout: "ZOBRAZENÍ:",
+    layoutDetailed: "Detailní (Hloubkové)",
+    layoutCondensed: "Stručné (Technické)"
   }
-  return context;
 };

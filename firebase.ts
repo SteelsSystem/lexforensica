@@ -1,250 +1,275 @@
-import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
-import { AuditResponse } from '../services/gemini';
+import { 
+  AuditResponse, 
+  AuthorityTier, 
+  OperationalAxiom, 
+  SemanticDistortion, 
+  ChronologicalAnomaly,
+  CypherState,
+  SocialIdentityBlueprint,
+  InstitutionalShortcut,
+  LinguisticMode,
+  SlangLabel,
+  WordPlantingError
+} from '../types';
+import { UI_DICT, AppLanguage } from '../lib/translations';
+import { RESEARCH_DEFINITION } from '../research';
 
-// Register fonts if needed, but standard ones are usually fine for now.
-// We'll use standard Helvetica.
-
-const styles = StyleSheet.create({
-  page: {
-    padding: 40,
-    backgroundColor: '#ffffff',
-    fontFamily: 'Helvetica',
-  },
-  header: {
-    marginBottom: 20,
-    borderBottom: 2,
-    borderBottomColor: '#1e293b',
-    paddingBottom: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1e293b',
-    marginBottom: 5,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  section: {
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2563eb',
-    marginBottom: 10,
-    borderBottom: 1,
-    borderBottomColor: '#e2e8f0',
-    paddingBottom: 5,
-  },
-  text: {
-    fontSize: 10,
-    color: '#334155',
-    lineHeight: 1.5,
-    marginBottom: 5,
-  },
-  bold: {
-    fontWeight: 'bold',
-  },
-  riskBox: {
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 15,
-  },
-  riskCritical: { backgroundColor: '#fee2e2', borderLeft: 4, borderLeftColor: '#ef4444' },
-  riskHigh: { backgroundColor: '#ffedd5', borderLeft: 4, borderLeftColor: '#f97316' },
-  riskMedium: { backgroundColor: '#fef9c3', borderLeft: 4, borderLeftColor: '#eab308' },
-  riskLow: { backgroundColor: '#dcfce7', borderLeft: 4, borderLeftColor: '#22c55e' },
-  
-  eventRow: {
-    flexDirection: 'row',
-    marginBottom: 10,
-    borderBottom: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingBottom: 5,
-  },
-  dateCol: {
-    width: '20%',
-    fontSize: 9,
-    color: '#64748b',
-  },
-  contentCol: {
-    width: '80%',
-  },
-  eventTitle: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#1e293b',
-    marginBottom: 2,
-  },
-  discrepancyBox: {
-    backgroundColor: '#f8fafc',
-    padding: 8,
-    marginTop: 5,
-    borderRadius: 4,
-    borderLeft: 3,
-    borderLeftColor: '#3b82f6',
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
-    textAlign: 'center',
-    fontSize: 8,
-    color: '#94a3b8',
-    borderTop: 1,
-    borderTopColor: '#e2e8f0',
-    paddingTop: 10,
+/**
+ * LinguisticEngine
+ * Handles Organic (CZ) vs Mechanical (EN) translation and Slang-as-Label detection.
+ * Prevents "Word-Planting" (Czenglish) errors.
+ */
+class LinguisticEngine {
+  /**
+   * Evaluates the linguistic mode based on text characteristics.
+   */
+  detectMode(text: string): LinguisticMode {
+    const czenglishPatterns = [/uploadovat/i, /draftovat/i, /exekuovat/i, /ingesce/i];
+    if (czenglishPatterns.some(p => p.test(text))) return LinguisticMode.HYBRID_CZENGLISH;
+    
+    // Simple heuristic: high inflection/diacritics = Organic
+    const diacritics = (text.match(/[áčďéěíňóřšťúůýž]/gi) || []).length;
+    return diacritics > text.length * 0.05 ? LinguisticMode.ORGANIC : LinguisticMode.MECHANICAL;
   }
-});
 
-export const AuditPDF = ({ audit }: { audit: AuditResponse }) => {
-  const getRiskStyle = (level: string) => {
-    switch (level) {
-      case 'CRITICAL': return styles.riskCritical;
-      case 'HIGH': return styles.riskHigh;
-      case 'MEDIUM': return styles.riskMedium;
-      case 'LOW': return styles.riskLow;
-      default: return {};
+  /**
+   * Decodes slang as a "factual shortcut" to hidden meanings.
+   */
+  decodeSlang(text: string): SlangLabel[] {
+    const labels: SlangLabel[] = [];
+    const slangMap: Record<string, { shortcut: string, meaning: string }> = {
+      'klece': { shortcut: 'Institutional Restraint', meaning: 'Net-beds or cage-beds used for containment' },
+      'kurty': { shortcut: 'Physical Fixation', meaning: 'Mechanical restraints/straps' },
+      'oblbnutý': { shortcut: 'Iatrogenic Sedation', meaning: 'State of pharmacological suppression' },
+      'vypadnout': { shortcut: 'Discharge Desire', meaning: 'Urgent need for liberty and exit from institutional hold' }
+    };
+
+    Object.entries(slangMap).forEach(([term, data]) => {
+      if (text.toLowerCase().includes(term)) {
+        labels.push({
+          term,
+          factualShortcut: data.shortcut,
+          hiddenMeaning: data.meaning,
+          institutionalAccessImpact: "HIGH"
+        });
+      }
+    });
+
+    return labels;
+  }
+
+  /**
+   * Identifies "Word-Planting" errors (Czenglish) that root in the LLM.
+   */
+  detectWordPlanting(text: string): WordPlantingError[] {
+    const errors: WordPlantingError[] = [];
+    const plantingMap: Record<string, string> = {
+      'ingesce': 'Ingestion / Příjem (Institutional absorption)',
+      'exekuovat': 'Execute / Provést (Technical execution)',
+      'validovat': 'Validate / Ověřit (Verification of truth)'
+    };
+
+    Object.entries(plantingMap).forEach(([term, intended]) => {
+      if (text.toLowerCase().includes(term)) {
+        errors.push({
+          detectedTerm: term,
+          intendedMeaning: intended,
+          rootCause: "LLM_ROOTING",
+          remediation: `Replace mechanical '${term}' with organic Czech equivalent or formal English forensic term.`
+        });
+      }
+    });
+
+    return errors;
+  }
+}
+
+/**
+ * CypherEngine
+ * Handles the "Cypher-State" (MIND1/MIND2/LOOP_CYCLE) and paraframing logic.
+ */
+class CypherEngine {
+  private state: CypherState = CypherState.STATIC;
+
+  setState(newState: CypherState) {
+    this.state = newState;
+  }
+
+  getState(): CypherState {
+    return this.state;
+  }
+
+  /**
+   * Paraframes institutional jargon into forensic meaning.
+   */
+  paraframe(text: string, shortcuts: InstitutionalShortcut[]): string {
+    let paraframed = text;
+    shortcuts.forEach(s => {
+      const regex = new RegExp(s.jargon, 'gi');
+      paraframed = paraframed.replace(regex, `[PARAFRAMED: ${s.paraframedMeaning}]`);
+    });
+    return paraframed;
+  }
+}
+
+/**
+ * ForensicNLP Core Service
+ * Centralized logic for language processing, authority mapping, and axiom enforcement.
+ * Aligned with DATASET-CODEOFCONDUCT.md and Lex Forensica v8.0 standards.
+ */
+export class ForensicNLP {
+  private static instance: ForensicNLP;
+  private cypher: CypherEngine;
+  private linguistic: LinguisticEngine;
+  
+  private constructor() {
+    this.cypher = new CypherEngine();
+    this.linguistic = new LinguisticEngine();
+  }
+
+  static getInstance(): ForensicNLP {
+    if (!ForensicNLP.instance) {
+      ForensicNLP.instance = new ForensicNLP();
     }
-  };
+    return ForensicNLP.instance;
+  }
 
-  return (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>LEX FORENSICA v7.0</Text>
-          <Text style={styles.subtitle}>Forenzní Sémantický Audit — Oficiální Report</Text>
-          <Text style={[styles.text, { marginTop: 5 }]}>ID Auditu: {audit.meta?.auditId || 'Neznámé'}</Text>
-          <Text style={styles.text}>Datum: {audit.meta?.timestamp ? new Date(audit.meta.timestamp).toLocaleString() : 'Neznámé'}</Text>
-          <Text style={styles.text}>Metoda: {audit.meta?.method || 'Neznámá'}</Text>
-        </View>
+  /**
+   * Returns the LinguisticEngine instance.
+   */
+  getLinguistic(): LinguisticEngine {
+    return this.linguistic;
+  }
 
-        {/* Risk Assessment */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>1. Posouzení rizik (Risk Assessment)</Text>
-          <View style={[styles.riskBox, getRiskStyle(audit.riskAssessment?.overallLevel || 'MEDIUM')]}>
-            <Text style={[styles.text, styles.bold]}>Úroveň rizika: {audit.riskAssessment?.overallLevel || 'MEDIUM'}</Text>
-            <Text style={styles.text}>{audit.riskAssessment?.summary || 'Shrnutí není k dispozici.'}</Text>
-          </View>
-          <Text style={[styles.text, styles.bold]}>Primární rizikové faktory:</Text>
-          {audit.riskAssessment?.primaryRiskFactors?.map((factor, i) => (
-            <Text key={i} style={styles.text}>• {factor}</Text>
-          ))}
-        </View>
+  /**
+   * Returns the CypherEngine instance.
+   */
+  getCypher(): CypherEngine {
+    return this.cypher;
+  }
 
-        {/* Causal Map */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>2. Kauzální mapa (Causal Map)</Text>
-          <Text style={[styles.text, styles.bold]}>Vrstva Minulosti (Anamnéza):</Text>
-          <Text style={styles.text}>{audit.causalMap?.layer_past?.summary || 'Není k dispozici'}</Text>
-          <Text style={[styles.text, styles.bold, { marginTop: 5 }]}>Vrstva Přítomnosti (Incident):</Text>
-          <Text style={styles.text}>{audit.causalMap?.layer_present?.summary || 'Není k dispozici'}</Text>
-          <Text style={[styles.text, styles.bold, { marginTop: 5 }]}>Kořenová Příčina (Hypotéza):</Text>
-          <Text style={styles.text}>{audit.causalMap?.layer_root?.hypothesis || 'Není k dispozici'}</Text>
-          <Text style={styles.text}>Mechanismus: {audit.causalMap?.layer_root?.mechanismType || 'Neznámý'} (Důvěra: {Math.round((audit.causalMap?.layer_root?.confidenceScore || 0) * 100)}%)</Text>
-        </View>
+  /**
+   * Maps a specific finding to the Authority Hierarchy.
+   */
+  getAuthorityTier(label: string): string {
+    if (label.includes('VOID') || label.includes('Ω')) return AuthorityTier.TIER_1;
+    if (label.includes('SEM') || label.includes('Δ')) return AuthorityTier.TIER_2;
+    if (label.includes('CHRONO') || label.includes('◈')) return AuthorityTier.TIER_3;
+    return 'GENERAL AUDIT';
+  }
 
-        {/* Chronology */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>3. Kritická Chronologie (Chronological Scheme)</Text>
-          {audit.chronology?.map((event, i) => (
-            <View key={i} style={styles.eventRow}>
-              <View style={styles.dateCol}>
-                <Text>{event.isoDate || 'Neznámé datum'}</Text>
-                <Text style={{ fontSize: 7 }}>{event.eventLayer}</Text>
-              </View>
-              <View style={styles.contentCol}>
-                <Text style={styles.eventTitle}>{event.eventType}</Text>
-                <Text style={styles.text}><Text style={styles.bold}>Záznam:</Text> {event.systemRecord?.content || 'Bez obsahu'}</Text>
-                {event.subjectRecord && (
-                  <Text style={styles.text}><Text style={styles.bold}>Výpověď:</Text> {event.subjectRecord?.content || 'Bez obsahu'}</Text>
-                )}
-              </View>
-            </View>
-          ))}
-        </View>
+  /**
+   * Detects institutional shortcuts and maps them to axiom violations.
+   */
+  detectInstitutionalShortcuts(text: string): InstitutionalShortcut[] {
+    const shortcuts: InstitutionalShortcut[] = [];
+    
+    // Example patterns based on common institutional bias
+    if (text.toLowerCase().includes('nespolupracuje') || text.toLowerCase().includes('non-compliant')) {
+      shortcuts.push({
+        jargon: 'nespolupracuje',
+        paraframedMeaning: 'Subject is exercising autonomy or reacting to iatrogenic side effects',
+        institutionalBiasScore: 0.8,
+        axiomViolation: OperationalAxiom.A2
+      });
+    }
+    
+    if (text.toLowerCase().includes('bez náhledu') || text.toLowerCase().includes('lack of insight')) {
+      shortcuts.push({
+        jargon: 'bez náhledu',
+        paraframedMeaning: 'Subject disagrees with institutional framing or is experiencing gaslighting',
+        institutionalBiasScore: 0.9,
+        axiomViolation: OperationalAxiom.A4
+      });
+    }
 
-        {/* Discrepancy Matrix */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>4. Matice diskrepancí (Discrepancy Matrix)</Text>
-          {audit.discrepancyMatrix?.map((d, i) => (
-            <View key={i} style={styles.discrepancyBox}>
-              <Text style={[styles.text, styles.bold]}>{d.discrepancyType} (Závažnost: {d.severity}/10)</Text>
-              <Text style={styles.text}><Text style={styles.bold}>Systém:</Text> {d.systemVersion}</Text>
-              <Text style={styles.text}><Text style={styles.bold}>Subjekt:</Text> {d.subjectVersion}</Text>
-            </View>
-          ))}
-        </View>
+    return shortcuts;
+  }
 
-        <View style={styles.footer}>
-          <Text>LEX FORENSICA v7.0 — Generováno automaticky forenzním auditním enginem. Dokument slouží jako podklad pro právní obranu.</Text>
-        </View>
-      </Page>
+  /**
+   * Maps the Subject Voice Layer to the Social Identity Blueprint.
+   */
+  applySocialIdentityBlueprint(subjectText: string): SocialIdentityBlueprint {
+    const markers: string[] = [];
+    let score = 1.0;
 
-      <Page size="A4" style={styles.page}>
-        {/* Legal Matrix */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>5. Právní analýza (Legal Matrix)</Text>
-          {audit.legalMatrix?.map((l, i) => (
-            <View key={i} style={{ marginBottom: 10 }}>
-              <Text style={[styles.text, styles.bold]}>{l.violationType} — {l.domain}</Text>
-              <Text style={styles.text}>Články: {l.articles?.join(', ') || 'Není k dispozici'}</Text>
-              <Text style={styles.text}>{l.reasoning}</Text>
-              <Text style={[styles.text, { color: '#2563eb' }]}><Text style={styles.bold}>Náprava:</Text> {l.remedySuggestion}</Text>
-            </View>
-          ))}
-        </View>
+    if (subjectText.toLowerCase().includes('nevím') || subjectText.toLowerCase().includes('asi')) {
+      markers.push('Gaslighting Marker: Linguistic Uncertainty');
+      score -= 0.2;
+    }
 
-        {/* Escalation Plan */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>6. Plán eskalace (Escalation Plan)</Text>
-          <Text style={[styles.text, styles.bold]}>Tier 0 (Okamžitá opatření):</Text>
-          {audit.escalationPlan?.tierActions?.tier_0?.map((a, i) => <Text key={i} style={styles.text}>• {a}</Text>)}
-          <Text style={[styles.text, styles.bold, { marginTop: 5 }]}>Tier 1 (Právní kroky):</Text>
-          {audit.escalationPlan?.tierActions?.tier_1?.map((a, i) => <Text key={i} style={styles.text}>• {a}</Text>)}
-          <Text style={[styles.text, styles.bold, { marginTop: 5 }]}>Tier 2 (Soudní napadení):</Text>
-          {audit.escalationPlan?.tierActions?.tier_2?.map((a, i) => <Text key={i} style={styles.text}>• {a}</Text>)}
-          <Text style={[styles.text, styles.bold, { marginTop: 5 }]}>Tier 3 (Mezinárodní instance):</Text>
-          {audit.escalationPlan?.tierActions?.tier_3?.map((a, i) => <Text key={i} style={styles.text}>• {a}</Text>)}
-        </View>
+    if (subjectText.toLowerCase().includes('musel jsem') || subjectText.toLowerCase().includes('přinutili')) {
+      markers.push('Internalized Oppression: Coerced Compliance');
+      score -= 0.3;
+    }
 
-        {/* Forensic Integrity & Bias Detection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>7. Forenzní integrita a detekce biasu</Text>
-          <View style={[styles.discrepancyBox, { borderLeftColor: '#f59e0b', backgroundColor: '#fffbeb' }]}>
-            <Text style={[styles.text, styles.bold]}>Sémantický posun (Semantic Drift): {audit.auditIntegrity?.semanticDriftDetected ? 'DETEKVÁN' : 'NENALEZEN'}</Text>
-            <Text style={styles.text}>Analýza vývoje jazyka od neutrálního k patologizujícímu/restriktivnímu.</Text>
-          </View>
-          
-          {(audit.auditIntegrity?.epistemicCircularities?.length || 0) > 0 && (
-            <View style={{ marginTop: 10 }}>
-              <Text style={[styles.text, styles.bold]}>Epistemické kruhy (Logické smyčky):</Text>
-              {audit.auditIntegrity?.epistemicCircularities?.map((c, i) => (
-                <Text key={i} style={styles.text}>• {c}</Text>
-              ))}
-            </View>
-          )}
+    return {
+      subjectRole: score > 0.7 ? "WITNESS" : "SURVIVOR",
+      internalizedOppressionDetected: markers.some(m => m.includes('Oppression')),
+      gaslightingMarkers: markers.filter(m => m.includes('Gaslighting')),
+      reconstructedNarrative: subjectText, // In a real app, this would be a more complex reconstruction
+      identitySovereigntyScore: Math.max(0, score)
+    };
+  }
 
-          {(audit.auditIntegrity?.flagsRaised?.length || 0) > 0 && (
-            <View style={{ marginTop: 10 }}>
-              <Text style={[styles.text, styles.bold]}>Systémové vlajky (Anomálie):</Text>
-              <Text style={styles.text}>{audit.auditIntegrity?.flagsRaised?.join(', ') || 'Není k dispozici'}</Text>
-            </View>
-          )}
-        </View>
+  /**
+   * Enforces Operational Axioms (A1-A6) on a specific data point.
+   */
+  validateAxiom(finding: string): string[] {
+    const violations: string[] = [];
+    if (finding.toLowerCase().includes('chybí') || finding.toLowerCase().includes('missing')) {
+      violations.push(OperationalAxiom.A1);
+    }
+    if (finding.toLowerCase().includes('nespolupracuje') || finding.toLowerCase().includes('non-compliant')) {
+      violations.push(OperationalAxiom.A2);
+    }
+    // ... more deterministic checks can be added here to save LLM compute
+    return violations;
+  }
 
-        <View style={styles.footer}>
-          <Text>LEX FORENSICA v7.0 — Strana 2 | Důvěrný forenzní materiál</Text>
-        </View>
-      </Page>
-    </Document>
-  );
-};
+  /**
+   * Simplifies language processing by providing direct forensic translation.
+   * Reduces token usage by using pre-defined mappings for common forensic terms.
+   */
+  translateForensicTerm(term: string, lang: AppLanguage): string {
+    // Direct mapping to save energy and ensure consistency
+    const mapping: Record<string, Record<AppLanguage, string>> = {
+      'TIME_VACUUM': { 'EN': 'Time Vacuum', 'CZENG': 'Časové vakuum' },
+      'SEMANTIC_DRIFT': { 'EN': 'Semantic Drift', 'CZENG': 'Sémantický posun' },
+      'LOGICAL_CRACK': { 'EN': 'Logical Crack', 'CZENG': 'Logická trhlina' },
+      'INSTITUTIONAL_BIAS': { 'EN': 'Institutional Bias', 'CZENG': 'Institucionální bias' }
+    };
+    
+    return mapping[term]?.[lang] || term;
+  }
+
+  /**
+   * Quality Control: Validates the AuditResponse against the Code of Conduct.
+   */
+  verifyIntegrity(audit: AuditResponse): boolean {
+    // Ensure TIER 1 priority
+    const hasTier1 = audit.discrepancyMatrix.some(d => d.shortLabel.includes('VOID') || d.shortLabel.includes('Ω'));
+    // Ensure Subject Voice is present
+    const hasSubjectVoice = audit.chronology.some(e => e.subjectRecord && e.subjectRecord.content.length > 0);
+    
+    // Set Cypher State
+    this.cypher.setState(CypherState.FLUID);
+    audit.auditIntegrity.cypherState = this.cypher.getState();
+
+    // Apply Identity Blueprint if subject voice is present
+    const subjectVoice = audit.chronology.find(e => e.subjectRecord)?.subjectRecord?.content;
+    if (subjectVoice) {
+      audit.auditIntegrity.identityBlueprint = this.applySocialIdentityBlueprint(subjectVoice);
+    }
+
+    // Perform Linguistic Audit
+    const fullText = audit.riskAssessment.summary + (subjectVoice || "");
+    audit.auditIntegrity.linguisticAudit = {
+      mode: this.linguistic.detectMode(fullText),
+      slangLabels: this.linguistic.decodeSlang(fullText),
+      wordPlantingErrors: this.linguistic.detectWordPlanting(fullText)
+    };
+    
+    return hasTier1 && hasSubjectVoice;
+  }
+}

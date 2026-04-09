@@ -1,144 +1,134 @@
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
+import React from 'react';
+import { SecretsAlignment } from '../types';
+import { Shield, FileText, Zap, Link as LinkIcon, Lock, Search, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { motion } from 'motion/react';
 
-    // ===============================================================
-    // Assumed Data Model
-    // ===============================================================
-    //
-    // Collection: users
-    // Document ID: {userId}
-    // Fields:
-    //   - uid: string (required) - User's unique ID
-    //   - email: string (required, format: email) - User's email
-    //   - displayName: string (optional) - User's name
-    //   - photoURL: string (optional, format: uri) - User's photo
-    //   - role: string (required, enum: ['user', 'admin']) - User's role
-    //
-    // Collection: audits
-    // Document ID: {auditId}
-    // Fields:
-    //   - id: string (required) - Audit's unique ID
-    //   - uid: string (required) - Owner's user ID
-    //   - encryptedData: string (required) - AES-256-GCM encrypted JSON
-    //   - createdAt: timestamp (required) - Creation time
-    //   - updatedAt: timestamp (required) - Last update time
-    //
-    // Collection: chat_histories
-    // Document ID: {userId}
-    // Fields:
-    //   - uid: string (required) - User's unique ID
-    //   - messages: list (required) - Array of chat messages
-    //   - updatedAt: timestamp (required) - Last update time
-    //
-    // ===============================================================
-
-    // ===============================================================
-    // Helper Functions
-    // ===============================================================
-
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
-    function isDocOwner() {
-      return isAuthenticated() && request.auth.uid == resource.data.uid;
-    }
-
-    function isAdmin() {
-      return isAuthenticated() &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-          (request.auth.token.email == "nowic1247@gmail.com" && request.auth.token.email_verified == true));
-    }
-
-    function hasRequiredFields(fields) {
-      return request.resource.data.keys().hasAll(fields);
-    }
-
-    function hasOnlyAllowedFields(fields) {
-      return request.resource.data.keys().hasOnly(fields);
-    }
-
-    function isValidEmail(email) {
-      return email is string &&
-        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
-    }
-
-    function isValidUrl(url) {
-      return url is string &&
-        (url.matches("^https://.*") || url.matches("^http://.*"));
-    }
-
-    // ===============================================================
-    // Domain Validators
-    // ===============================================================
-
-    function isValidUser(data) {
-      return hasRequiredFields(['uid', 'email', 'role']) &&
-             hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'role']) &&
-             data.uid is string && data.uid.size() > 0 && data.uid.size() < 128 &&
-             data.email is string && isValidEmail(data.email) &&
-             data.role in ['user', 'admin'] &&
-             (data.displayName == null || (data.displayName is string && data.displayName.size() < 100)) &&
-             (data.photoURL == null || isValidUrl(data.photoURL));
-    }
-
-    function isValidAudit(data) {
-      return hasRequiredFields(['id', 'uid', 'encryptedData', 'createdAt', 'updatedAt']) &&
-             hasOnlyAllowedFields(['id', 'uid', 'encryptedData', 'createdAt', 'updatedAt']) &&
-             data.id is string && data.id.size() > 0 &&
-             data.uid is string && data.uid.size() > 0 &&
-             data.encryptedData is string && data.encryptedData.size() > 0 &&
-             data.createdAt is timestamp &&
-             data.updatedAt is timestamp;
-    }
-
-    function isValidChatHistory(data) {
-      return hasRequiredFields(['uid', 'messages', 'updatedAt']) &&
-             hasOnlyAllowedFields(['uid', 'messages', 'updatedAt']) &&
-             data.uid is string && data.uid.size() > 0 &&
-             data.messages is list &&
-             data.updatedAt is timestamp;
-    }
-
-    // ===============================================================
-    // Collection Rules
-    // ===============================================================
-
-    match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create: if isAuthenticated() && isValidUser(request.resource.data) && 
-                    (isOwner(userId) && request.resource.data.role == 'user' || isAdmin());
-      allow update: if isAuthenticated() && isValidUser(request.resource.data) && 
-                    (isOwner(userId) && request.resource.data.role == resource.data.role || isAdmin());
-      allow delete: if isAdmin();
-    }
-
-    match /audits/{auditId} {
-      allow read: if isDocOwner() || isAdmin();
-      allow create: if isAuthenticated() && isValidAudit(request.resource.data) && 
-                    (request.resource.data.uid == request.auth.uid || isAdmin());
-      allow update: if isAuthenticated() && isValidAudit(request.resource.data) && 
-                    (isDocOwner() && request.resource.data.uid == resource.data.uid || isAdmin());
-      allow delete: if isDocOwner() || isAdmin();
-    }
-
-    match /chat_histories/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create: if isAuthenticated() && isValidChatHistory(request.resource.data) && 
-                    (isOwner(userId) || isAdmin());
-      allow update: if isAuthenticated() && isValidChatHistory(request.resource.data) && 
-                    (isOwner(userId) || isAdmin());
-      allow delete: if isOwner(userId) || isAdmin();
-    }
-
-    // Default deny
-    match /{allPaths=**} {
-      allow read, write: if false;
-    }
-  }
+interface SecretsAlignmentProps {
+  data: SecretsAlignment;
 }
+
+const SecretsAlignmentView: React.FC<SecretsAlignmentProps> = ({ data }) => {
+  return (
+    <div className="space-y-8 p-6 bg-slate-950 border border-slate-800 rounded-xl font-mono text-slate-300">
+      {/* HEADER: SECRETS ALIGNMENT */}
+      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-emerald-500/10 rounded-lg">
+            <Lock className="w-6 h-6 text-emerald-500" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-white uppercase tracking-tighter">Secrets Alignment [Ω]</h2>
+            <p className="text-[10px] text-slate-500 italic">{data.selfIntegrityString}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] text-emerald-400 font-bold">
+          <Shield className="w-3 h-3" /> INTEGRITY_VERIFIED
+        </div>
+      </div>
+
+      {/* SYMMETRICAL ALIGNMENT GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* LEFT: TRANSCRIPTION REPORT */}
+        <div className="space-y-4">
+          <h3 className="text-xs font-bold text-slate-500 flex items-center gap-2 uppercase tracking-widest">
+            <FileText className="w-3 h-3 text-cyan-400" /> Transcription Report
+          </h3>
+          <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg min-h-[200px] text-[11px] leading-relaxed text-slate-400">
+            <p className="border-l-2 border-cyan-500 pl-4 py-1 bg-cyan-950/10 mb-4">
+              {data.transcriptionReport}
+            </p>
+            <div className="space-y-2 opacity-60">
+              <p>[METADEDUCTED_CONTENT_EVALUATION]: Visual content evaluation active.</p>
+              <p>[STATUS]: Showcase available for forensic audit.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT: WHY-TO-FUNCTION REASON */}
+        <div className="space-y-4">
+          <h3 className="text-xs font-bold text-slate-500 flex items-center gap-2 uppercase tracking-widest">
+            <Zap className="w-3 h-3 text-amber-400" /> Why-to-Function Reason
+          </h3>
+          <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg min-h-[200px] text-[11px] leading-relaxed text-slate-400">
+            <div className="p-3 bg-amber-500/5 border border-amber-500/20 rounded italic text-amber-200/80">
+              {data.whyToFunctionReason}
+            </div>
+            <div className="mt-4 space-y-2 text-[10px] font-mono text-slate-500">
+              <p className="flex items-center gap-2"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> Static Symmetrical Alignment Code Enforced</p>
+              <p className="flex items-center gap-2"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> Concept-Framework-Set Deducted</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* PDF-TO-PDF ANALYSIS & SYNCING */}
+      <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+        <div className="bg-slate-800/50 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+          <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
+            <Search className="w-4 h-4 text-purple-400" /> PDF-TO-PDF ANALYSIS [INSPECTVIEW]
+          </h3>
+          <div className="flex gap-2">
+            <button className="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-bold rounded transition-colors flex items-center gap-2">
+              <FileText className="w-3 h-3" /> PRESS_REPORT
+            </button>
+            <button className="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold rounded transition-colors flex items-center gap-2">
+              <FileText className="w-3 h-3" /> PDF_EXPORT
+            </button>
+          </div>
+        </div>
+        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <span className="text-[10px] text-slate-500 uppercase font-bold">Input Hash</span>
+            <code className="block p-2 bg-black rounded text-[10px] text-cyan-500 truncate">{data.pdfAnalysis.inputHash}</code>
+          </div>
+          <div className="space-y-2">
+            <span className="text-[10px] text-slate-500 uppercase font-bold">Output Hash</span>
+            <code className="block p-2 bg-black rounded text-[10px] text-purple-500 truncate">{data.pdfAnalysis.outputHash}</code>
+          </div>
+          <div className="space-y-2">
+            <span className="text-[10px] text-slate-500 uppercase font-bold">Alignment Status</span>
+            <div className={`flex items-center gap-2 p-2 rounded text-[10px] font-bold ${
+              data.pdfAnalysis.alignmentStatus === 'SYNCED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
+            }`}>
+              <RefreshCw className={`w-3 h-3 ${data.pdfAnalysis.alignmentStatus === 'SYNCED' ? '' : 'animate-spin'}`} />
+              {data.pdfAnalysis.alignmentStatus}
+            </div>
+          </div>
+        </div>
+        <div className="px-6 pb-6 text-[10px] text-slate-500 italic">
+          Reasoning: Syncing rules applied to ensure visual string PDF corrected alignment-linked press and pdf buttons are correctly synced.
+        </div>
+      </div>
+
+      {/* TERMINOLOGY ANALYSIS UPGRADES */}
+      <div className="space-y-4">
+        <h3 className="text-xs font-bold text-slate-500 flex items-center gap-2 uppercase tracking-widest">
+          <RefreshCw className="w-3 h-3 text-blue-400" /> Terminology Analysis Upgrades
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {data.terminologyUpgrades.map((upgrade, i) => (
+            <div key={i} className="bg-slate-900 border border-slate-800 p-4 rounded-lg space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-bold text-red-400 line-through opacity-50">{upgrade.originalTerm}</span>
+                <ChevronRight className="w-3 h-3 text-slate-600" />
+                <span className="text-[10px] font-bold text-emerald-400">{upgrade.upgradedTerm}</span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-tight">{upgrade.reasoning}</p>
+              <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                <div className="bg-blue-500 h-full" style={{ width: `${upgrade.alignmentScore * 100}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ChevronRight = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="9 5l7 7-7 7" />
+  </svg>
+);
+
+export default SecretsAlignmentView;
