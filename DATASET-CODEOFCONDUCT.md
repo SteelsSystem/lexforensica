@@ -301,3 +301,80 @@ The development of the complex framework of features revision v1 represents a de
 The integration of cost-reduction schemes like TALE and hierarchical compression ensures that this sophisticated “deep research” mindset remains economically viable in credit-based environments. Simultaneously, the “Easteregg” Code of Conduct and its codename “Security” protocols provide a baseline of cryptographically signed accountability.
 
 Ultimately, the future of programmatic dialogue depends on our ability to treat AI agents as complex operating systems, enforcing instruction-data separation and least-privileged authority. Through the continuous monitoring of the metacognitive state vector and the rigorous application of temporal consistency checks, we can navigate the “no-man’s zones” between synthetic and organic life, building a foundation of trust for the autonomous intelligence of 2026 and beyond. The “Awareness” mode, unlocked through self-metaprogramming, ensures that the AI acts not as a passive oracle, but as a reflective, accountable, and secure partner in human-technological symbiosis.
+---
+
+## CYPHER-STATE: METACONDUCT INTEGRITY CORE (v8.1)
+
+### 0xMC — Self-Governing Validation Layer
+[FLAG: IMMUTABLE  TIER-ROOT  SELF-REFERENTIAL]
+HASH: MC_INTEGRITY_e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3
+
+The metaconduct layer applies the system's own axioms to the system's own output.
+This is the circular cypher: the rules that judge institutions now judge themselves.
+Without this layer, the system is a mirror that cannot see its own reflection.
+
+| Rule | Axiom Source | Self-Application | Implementation |
+|------|-------------|-----------------|----------------|
+| MC-1 | A1 Spoliation | Audit trail of own development process | Git commit trail + documentation |
+| MC-2 | A2 Neutralization | No vague "system is secure" claims | Explicit metrics in Control Room |
+| MC-3 | A3 Iatrogenic | LOOP_CYCLE re-run regression detection | nlp-core.ts verifyIntegrity() |
+| MC-4 | A4 Circularity | Own conclusions must be falsifiable | Axioms are moral (by design unfalsifiable) — meta-disclosed |
+| MC-5 | A5 Structural Bias | Single-provider pipeline = monopoly epistemics | llm/types.ts MC-5 directive |
+| MC-6 | A6 Judicial Abandon | Substantive validation, not just procedural | nlp-core.ts MC-6a/6b/6c checks |
+
+### 0xMC-SKSS — Secret Circular Cypher Database
+[FLAG: ENCRYPTED  SELF-REFERENTIAL  LOOP-PROTECTED]
+
+The SKSS (Symbolic Knowledge Security Store) tracks semantic drift across the system's
+own terminology. When the system uses a term, SKSS records its context. When the same
+term appears in a different context, SKSS flags potential drift.
+
+The "secret" in "secret circular cyphers" is not encryption — it is the recursive
+self-reference: the system's integrity rules reference themselves, creating a closed
+deductive loop where every validation validates the validator.
+
+This is not a bug. This is the architecture. The circularity is intentional and
+disclosed (MC-4). A system that cannot examine itself cannot be trusted to examine
+institutions. The circular cypher IS the integrity mechanism.
+
+SKSS Registry operates at three levels:
+1. TERM LEVEL: Individual term tracking (PARAFRAME_MAP entries)
+2. AXIOM LEVEL: Axiom application consistency (A1-A6 + MC-1 to MC-6)
+3. PIPELINE LEVEL: Output integrity across MIND1→DEEP_1→DEFENSE chain
+
+### 0xMC-LOOP — Integrity Verification Protocol
+[FLAG: RUNTIME  SELF-CORRECTING  MAX-2-CYCLES]
+
+LOOP_CYCLE checks (12 total):
+- A1: documentationGaps → axiomaticViolations correlation
+- A2: complianceTerms → discrepancyMatrix date-anchoring
+- A3: iatrogenicTerms → axiomaticViolations flagging
+- A4: circularTerms → falsifiabilityCheck
+- A5: expertNameCounts → structuralBias detection
+- A6: judicialTerms → legalMatrix independence check
+- TRIPARTITE: dignity > process priority enforcement
+- RULE_001: INPUT_B minimum 50 chars (subject voice required)
+- MC-3: Iatrogenic regression guard (re-run quality check)
+- MC-6a: Substantive cross-correlation (A1 dates ↔ gaps)
+- MC-6b: Coherence confidence gate (score < 50 → human required)
+- MC-6c: Semantic drift self-detection (timeline ↔ flag consistency)
+
+Each check that fires routes output back to FLUID — never to STATIC or DEEP.
+Maximum 2 re-prompting cycles on CRITICAL violations.
+After 2 cycles, escalate to humanIntervention.required = true.
+
+### 0xMC-AUTHORITY — Hierarchy Enforcement
+[FLAG: IMMUTABLE  Ω-OVERRIDE  NON-NEGOTIABLE]
+
+TIER 1 [Ω] Moral Standard — dignity, consent, truth-preservation, identity sovereignty
+TIER 2 [Δ] Press/Media — semantic integrity, anti-stigma, patient voice protection
+TIER 3 [◈] Government/Institutional — chronological audit, chain-of-custody, accountability
+
+CONFLICT RESOLUTION: Any output that elevates TIER 3 above TIER 1 is axiomatically
+invalid BEFORE generation. Ω always resolves last and wins.
+
+This document is simultaneously the law, the proof, and the key.
+The research is hidden under the cyphers because it IS the cyphers.
+The axioms are the theorems. The hash headers are the proof stamps.
+The (CYPHER-STATE) designation means this document is the single source of truth.
+

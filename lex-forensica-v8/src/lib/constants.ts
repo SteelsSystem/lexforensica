@@ -706,3 +706,70 @@ export const PARAFRAME_MAP: Record<string, string> = {
   'selbst- und fremdgefährdend': 'Risikobeschreibung durch institutionellen Akteur ohne unabhängige Bewertung',
   therapieresistent: 'Subjekt sprach nicht auf vorgeschriebenes Protokoll an; Protokolleignung nicht neu bewertet',
 };
+
+// ---------------------------------------------------------------------------
+// METACONDUCT INTEGRITY REGISTRY (SKSS Cypher-State Layer)
+// Self-governing validation rules — the system applies its own axioms
+// to its own output. See DATASET-CODEOFCONDUCT.md § 0xMC.
+// ---------------------------------------------------------------------------
+
+export const METACONDUCT_RULES: Record<
+  string,
+  { axiomSource: string; selfApplication: string; check: string; status: 'ACTIVE' | 'DIRECTIVE' }
+> = {
+  'MC-1': {
+    axiomSource: 'A1 Forensic Spoliation',
+    selfApplication: 'Audit trail of own development process must exist',
+    check: 'Git commit trail + documentation coverage',
+    status: 'ACTIVE',
+  },
+  'MC-2': {
+    axiomSource: 'A2 Semantic Neutralization',
+    selfApplication: 'No vague claims — explicit metrics only',
+    check: 'Control Room coverage bars + placeholder audit',
+    status: 'ACTIVE',
+  },
+  'MC-3': {
+    axiomSource: 'A3 Iatrogenic Attribution',
+    selfApplication: 'LOOP_CYCLE re-run regression detection',
+    check: 'verifyIntegrity() — violation count comparison post-rerun',
+    status: 'ACTIVE',
+  },
+  'MC-4': {
+    axiomSource: 'A4 Epistemic Circularity',
+    selfApplication: 'Own conclusions must be falsifiable (axioms are moral = disclosed exception)',
+    check: 'Meta-disclosure in CoC § 0xMC',
+    status: 'ACTIVE',
+  },
+  'MC-5': {
+    axiomSource: 'A5 Structural Bias',
+    selfApplication: 'Single-provider pipeline = monopoly epistemics',
+    check: 'llm/types.ts MC-5 directive — multi-provider diversification',
+    status: 'DIRECTIVE',
+  },
+  'MC-6a': {
+    axiomSource: 'A6 Judicial Abandonment',
+    selfApplication: 'Substantive cross-correlation (not just procedural)',
+    check: 'verifyIntegrity() — A1 violations ↔ documentationGaps dates',
+    status: 'ACTIVE',
+  },
+  'MC-6b': {
+    axiomSource: 'A6 Judicial Abandonment',
+    selfApplication: 'Coherence confidence gate',
+    check: 'verifyIntegrity() — coherenceScore < 50 → humanIntervention.required',
+    status: 'ACTIVE',
+  },
+  'MC-6c': {
+    axiomSource: 'A4 Epistemic Circularity',
+    selfApplication: 'Semantic drift self-detection',
+    check: 'verifyIntegrity() — semanticDriftTimeline ↔ semanticDriftDetected consistency',
+    status: 'ACTIVE',
+  },
+};
+
+/**
+ * SKSS Integrity Hash — computed from METACONDUCT_RULES keys.
+ * If this hash changes, the metaconduct layer has been modified.
+ * Any modification must be documented in CoC § 0xMC.
+ */
+export const SKSS_METACONDUCT_HASH = 'MC_INTEGRITY_e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3';
