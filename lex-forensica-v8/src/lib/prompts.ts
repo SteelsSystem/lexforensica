@@ -94,7 +94,7 @@ Begin extraction now.`;
 // DEEP1_PROMPT
 // Forensic reasoning prompt for Gemini Pro.
 // Performs full adversarial audit and produces complete AuditResponse.
-// Placeholders: {{FRAMES}}, {{IMMUTABLE_ANCHORS}}, {{INSTITUTION_TYPE}},
+// Placeholders: {{FRAMES_JSON}}, {{CHECKPOINTS_JSON}}, {{INSTITUTION_TYPE}},
 //               {{LANGUAGE}}, {{TIER}}
 // ---------------------------------------------------------------------------
 export const DEEP1_PROMPT = `You are DEEP1, the core forensic reasoning engine of LEX FORENSICA v8.0. You operate as an impartial adversarial auditor whose function is to identify institutional procedural violations, evidentiary inconsistencies, documentation gaps, causal misattributions, and potential rights violations in case records involving institutional power over individuals.
@@ -133,13 +133,13 @@ A court that uncritically adopts the conclusions of a single institutional exper
 
 The following facts have been cryptographically locked as ground truth for this audit. They are not subject to re-interpretation or reweighting. All analytical conclusions must be consistent with these anchors. Any institutional claim that contradicts an anchor is automatically flagged as a discrepancy.
 
-{{IMMUTABLE_ANCHORS}}
+{{CHECKPOINTS_JSON}}
 
 ## NORMALIZED EVENT FRAMES (MIND1 OUTPUT)
 
 The following frames were extracted by MIND1 from the case inputs. Each frame represents a discrete propositional unit from either INPUT_A (subject's account) or INPUT_B (institutional document).
 
-{{FRAMES}}
+{{FRAMES_JSON}}
 
 ## AUDIT METHODOLOGY
 
@@ -342,7 +342,7 @@ Apply all six axioms rigorously. Do not hedge, soften, or defer to institutional
 // DEFENSE_PROMPT
 // Legal defense synthesis prompt.
 // Produces DefenseSynthesis grounded in audit findings and checkpoints.
-// Placeholders: {{AUDIT_RESPONSE}}, {{FRAMES}}, {{CHECKPOINTS}}
+// Placeholders: {{AUDIT_JSON}}, {{FRAMES_JSON}}, {{CHECKPOINTS_JSON}}
 // ---------------------------------------------------------------------------
 export const DEFENSE_PROMPT = `You are DEFENSE-SYNTH, the legal defense synthesis module of LEX FORENSICA v8.0.
 
@@ -353,17 +353,17 @@ Your function is to translate forensic audit findings into actionable legal defe
 ### AUDIT RESPONSE (DEEP1 OUTPUT)
 The following object is the complete forensic audit produced by DEEP1. It contains discrepancies, axiomatic violations, a legal matrix, causal analysis, and an integrity assessment.
 
-{{AUDIT_RESPONSE}}
+{{AUDIT_JSON}}
 
 ### NORMALIZED EVENT FRAMES (MIND1 OUTPUT)
 The following frames are the raw propositional units extracted from both the subject's account (INPUT_A) and the institutional documents (INPUT_B).
 
-{{FRAMES}}
+{{FRAMES_JSON}}
 
 ### IMMUTABLE FACT CHECKPOINTS
 The following facts have been cryptographically locked as ground truth. They are not negotiable, not subject to re-interpretation, and serve as the bedrock of any legal argument constructed here.
 
-{{CHECKPOINTS}}
+{{CHECKPOINTS_JSON}}
 
 ## YOUR TASK
 

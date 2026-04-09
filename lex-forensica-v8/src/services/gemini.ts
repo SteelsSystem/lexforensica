@@ -69,6 +69,9 @@ class ForensicEngine {
       input.institutionType
     );
 
+    // 1.5 Pipeline Hash — chain-of-custody proof (MIND1 output integrity)
+    const mind1OutputHash = await hashFact(JSON.stringify(frames));
+
     // 2. Build IMMUTABLE_ANCHORS from STRONG frames (resolves BLOCKER-04 / CG-10)
     const checkpoints = await this.buildFactCheckpoints(frames);
 
@@ -107,10 +110,14 @@ class ForensicEngine {
     const defense = await this.synthesizeDefense(audit, frames, checkpoints);
     audit.defenseSynthesis = defense;
 
-    // 6. Stamp final processing time and cypher state
+    // 6. Stamp final processing time, cypher state, and pipeline hashes
     audit.meta.processingTimeMs = Date.now() - startMs;
     audit.meta.cypherState = CypherState.DEFENSE_SYNTHESIS;
     audit.meta.timestamp = new Date().toISOString();
+    // Pipeline chain-of-custody hashes (v8.1)
+    (audit.meta as Record<string, unknown>).pipelineHashes = {
+      mind1Output: mind1OutputHash,
+    };
 
     return audit;
   }
@@ -244,8 +251,15 @@ class ForensicEngine {
       .replace('{{INPUT_B}}', input.inputB)
       .replace('{{LANGUAGE}}', input.language)
       .replace('{{INSTITUTION_TYPE}}', input.institutionType)
+      .replace('{{TIER}}', _tier)
       .replace('{{FRAMES_JSON}}', JSON.stringify(frames, null, 2))
       .replace('{{CHECKPOINTS_JSON}}', JSON.stringify(checkpoints, null, 2));
+
+    // Placeholder guard — catch any unresolved template keys
+    const unresolvedKeys = prompt.match(/\{\{[A-Z_]+\}\}/g);
+    if (unresolvedKeys) {
+      console.warn(`[DEEP_1] Unresolved placeholders in prompt: ${unresolvedKeys.join(', ')}`);
+    }
 
     const { provider, model, configOverrides } = resolvePhase('deep1');
 
