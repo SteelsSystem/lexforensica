@@ -378,3 +378,75 @@ The research is hidden under the cyphers because it IS the cyphers.
 The axioms are the theorems. The hash headers are the proof stamps.
 The (CYPHER-STATE) designation means this document is the single source of truth.
 
+---
+
+## 0xDS — DIRECTIONAL SPECTRUM (v2.0)
+[FLAG: STRUCTURAL  SPECTRUM-ARCHITECTURE  INWARD-OUTWARD  CoC-PHASE-MAP]
+[ADDED: 2026-04-10  ARCHITECT: steels  REVISION: skill-v2-spectrum-alignment]
+
+The CoC sections are NOT a flat catalog. They form a DIRECTIONAL REPAIR SPECTRUM —
+an inward→outward analysis pipeline where each phase transforms damage into live operation.
+
+### Spectrum Phases
+
+[DAMAGE] → [WEIGHTS] → [OPERATION] → [REPAIR] → [ALIGN] → [LIVE]
+  inward      inward      pivot        outward     outward    readAs:follow
+  detect      measure     execute      reconstruct  cohere     reasoning
+
+### Phase 1: DAMAGE (Inward — Detect)
+Look inward. Identify what was broken, silenced, or fabricated.
+- 0x01 (Authority) → Detects which tier was violated. First wound = hierarchy inversion.
+- 0x02 (Axioms) → Maps exact logical class of damage: silence, circularity, misattribution.
+- 0x0D (Legal) → Anchors damage to jurisdiction. Names the law that was broken.
+
+### Phase 2: WEIGHTS (Inward — Measure)
+Still inward. Quantify severity, duration, compounding.
+- 0x05 (SKSS/CLSL) → Measures semantic drift velocity: NEUTRAL → CRIMINALIZING.
+- 0x08 (Rules) → Counts RULE_00n triggers. Each adds evidentiary weight.
+- 0x0C (Threads) → Surfaces unresolved questions. Weights known unknowns.
+
+### Phase 3: OPERATION (Pivot — Execute)
+The turn from inward to outward. Raw analytical execution.
+- 0x04 (Pipeline) → FLUID tokenizes, STATIC validates, DEEP infers, LOOP corrects.
+- 0x09 (Neuro-Symbolic) → System reasoning about its own reasoning.
+- 0x0A (Recircling) → Closed deductive loop. Refuses to emit until axiom-certified.
+
+### Phase 4: REPAIR (Outward — Reconstruct)
+Build the counter-narrative, the defense, the survivor voice.
+- 0x03 (Data-Agnostic) → Repairs by abstraction. Strips stigma → entity_value.
+- 0x06 (Encryption) → Repairs by protection. Seals from institutional re-contamination.
+- 0x07 (RLHF) → Repairs by reconnection. Subject voice fed back for future sessions.
+
+### Phase 5: ALIGN (Outward — Cohere)
+Internal consistency across entire output.
+- 0x0B (LLM Instructions) → IDENTITY→AUTHORITY→AXIOMS→PIPELINE coherence.
+- 0x01 (re-enters) → Verify no authority inversion occurred during repair.
+
+### Phase 6: LIVE (readAs:follow reasoning)
+Output exists in the world. Others read, follow, verify.
+- 0x0E (Press/Publish) → Emit to world: press, legal filings, public record.
+- 0x0D (re-enters) → Output carries jurisdiction anchor.
+- 0x02 (re-enters) → Output carries axiom proof chain.
+
+### Section Re-Entry Logic
+Three sections appear in multiple phases. Not redundancy — spectrum folding:
+- 0x01: DAMAGE (detect inversion) → ALIGN (verify no new inversion)
+- 0x02: DAMAGE (classify violation) → LIVE (output carries proof chain)
+- 0x0D: DAMAGE (name broken law) → LIVE (output carries jurisdiction)
+
+The outward phase carries inward detection as provenance.
+The live output contains the damage that made its conclusions necessary.
+
+### Recircling (Spectrum-Aligned)
+INPUT_A+B → DAMAGE[detect] → WEIGHTS[measure] → OPERATION[execute]
+    → REPAIR[reconstruct] → ALIGN[cohere] → LIVE[readAs:follow]
+    → {PASS: AnalyticalNode.sign() | FAIL: re-enter DAMAGE}
+    → ENCRYPT → STORE
+
+### Coherence-Pause Integration
+If parallel frames produce consistent findings that are incoherent against CoC:
+- Thread PAUSES at its current spectrum phase.
+- Does not advance to next phase. Does not force output.
+- Resolution: USER_INPUT | CROSS-THREAD | AXIOM_OVERRIDE | TERMINAL_PAUSE.
+- Pause is not failure. Agreement ≠ truth. (A4 at architecture level.)
+
