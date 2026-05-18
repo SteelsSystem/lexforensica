@@ -12,8 +12,27 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"></noscript>
 <link rel="stylesheet" href="index.css">
+<script>
+/* Pre-paint: restore A++ contrast state to avoid flash */
+(function(){
+  try {
+    if (localStorage.getItem('lf-contrast') === 'high') {
+      document.documentElement.classList.add('high-contrast');
+    }
+  } catch(e){}
+})();
+</script>
 </head>
 <body>
+
+<!-- A++ CONTRAST TOGGLE — accessibility, safe-area aware, persisted -->
+<button
+  type="button"
+  id="contrast-toggle"
+  class="contrast-toggle"
+  aria-label="Přepnout vysoký kontrast"
+  aria-pressed="false"
+>A++ KONTRAST</button>
 
 <!-- LAVA — ambient blob field, lazy-init -->
 <div class="lava-wrap" aria-hidden="true" data-defer="lava">
@@ -306,7 +325,30 @@
     wrap.classList.add('lava-ready');
   }
 
+  // A++ contrast toggle — single button, persisted, applied to html+body
+  function initContrastToggle(){
+    const btn = document.getElementById('contrast-toggle');
+    if (!btn) return;
+    const LABEL_ON  = 'A− NORMÁL';
+    const LABEL_OFF = 'A++ KONTRAST';
+    const apply = (on) => {
+      document.documentElement.classList.toggle('high-contrast', on);
+      document.body.classList.toggle('high-contrast', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.textContent = on ? LABEL_ON : LABEL_OFF;
+    };
+    let stored = null;
+    try { stored = localStorage.getItem('lf-contrast'); } catch(e){}
+    apply(stored === 'high');
+    btn.addEventListener('click', () => {
+      const next = !document.documentElement.classList.contains('high-contrast');
+      apply(next);
+      try { localStorage.setItem('lf-contrast', next ? 'high' : 'normal'); } catch(e){}
+    });
+  }
+
   function boot(){
+    initContrastToggle();
     initReveal();
     initNavSpy();
     if ('requestIdleCallback' in window) {

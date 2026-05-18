@@ -781,3 +781,133 @@ body::after {
   outline: 2px solid var(--cyan);
   outline-offset: 2px;
 }
+
+/* ───── 15 · A++ CONTRAST TOGGLE ─────
+   Compact, safe-area-aware button (bottom-right).
+   Single button — no ghost/duplicate, no focus box flash. */
+.contrast-toggle {
+  position: fixed;
+  right: calc(14px + env(safe-area-inset-right, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 200;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--bright);
+  background: rgba(5, 5, 15, .92);
+  border: 1px solid var(--cyan);
+  padding: 8px 12px;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, .5);
+  transition: color var(--t-fast), background var(--t-fast), border-color var(--t-fast);
+}
+.contrast-toggle:hover {
+  color: var(--cyan);
+  background: rgba(0, 229, 255, .12);
+}
+.contrast-toggle:focus { outline: none; }
+.contrast-toggle:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+.contrast-toggle::-moz-focus-inner { border: 0; padding: 0; }
+
+/* Reserve room so the toggle never covers footer/content */
+.page {
+  padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-width: 600px) {
+  .contrast-toggle {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    padding: 7px 10px;
+    right: calc(10px + env(safe-area-inset-right, 0px));
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .page { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* ───── 16 · HIGH CONTRAST MODE (A++) ─────
+   Activated by .high-contrast on <html>/<body>. Mirrors prefers-contrast: more
+   but is user-toggleable and persisted via localStorage. */
+html.high-contrast,
+body.high-contrast {
+  background: #000;
+  color: #fff;
+}
+.high-contrast body::after { opacity: 0; }
+.high-contrast .lava-wrap.lava-ready,
+.high-contrast .lava-wrap.lava-static { opacity: 0; }
+.high-contrast .scanline { opacity: 0; animation: none; }
+
+.high-contrast .hero-inner,
+.high-contrast .engine-card,
+.high-contrast .surface-card,
+.high-contrast .relation-item,
+.high-contrast .final-stamp {
+  background: #000;
+  border-color: #ffffff88;
+}
+.high-contrast .hero-inner::before,
+.high-contrast .relation-item::before,
+.high-contrast .surface-card::after { opacity: 0; }
+
+.high-contrast .hero h1,
+.high-contrast .hero .lead,
+.high-contrast .hero .lead strong,
+.high-contrast .surface h2,
+.high-contrast .relation h2,
+.high-contrast .surface-lead,
+.high-contrast .relation-lead,
+.high-contrast .surface-card h3,
+.high-contrast .surface-card p,
+.high-contrast .relation-item h3,
+.high-contrast .relation-item p,
+.high-contrast .engine-card dd,
+.high-contrast .engine-note,
+.high-contrast .engine-note em,
+.high-contrast .header-title,
+.high-contrast .header-version,
+.high-contrast .header-status,
+.high-contrast .site-footer,
+.high-contrast .final-stamp {
+  color: #fafafa;
+}
+.high-contrast .header-nav a { color: #fafafa; }
+.high-contrast .header-nav a.active { color: #fff; border-color: #fff; background: #00e5ff22; }
+.high-contrast .site-footer a { color: #9be9ff; text-decoration-color: #9be9ff; }
+
+.high-contrast .eyebrow,
+.high-contrast .surface-card-tag,
+.high-contrast .relation-tag,
+.high-contrast .surface-card-link,
+.high-contrast .surface-card h3 code,
+.high-contrast .engine-card h2,
+.high-contrast .engine-card dt,
+.high-contrast .sec-div-label { color: #9be9ff; }
+
+.high-contrast .btn.primary {
+  color: #fff;
+  border-color: #fff;
+  background: #00e5ff33;
+}
+.high-contrast .btn.ghost {
+  color: #fff;
+  border-color: #fff;
+  background: #ffffff10;
+}
+
+.high-contrast .contrast-toggle {
+  background: #000;
+  color: #fff;
+  border-color: #fff;
+}
+.high-contrast .contrast-toggle:hover {
+  background: #ffffff14;
+  color: #9be9ff;
+}
