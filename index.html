@@ -1,24 +1,106 @@
-<main class="page">
-  <!-- HERO -->
-  <section class="hero">
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="STEELS / Lex Forensica — Veřejná vizuální vrstva forenzní AI architektury">
+<meta name="theme-color" content="#05050f">
+<title>STEELS · Lex Forensica — Veřejná Vizuální Vrstva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"></noscript>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<!-- LAVA — ambient blob field, lazy-init -->
+<div class="lava-wrap" aria-hidden="true" data-defer="lava">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <div class="blob b4"></div><div class="blob b5"></div><div class="blob b6"></div>
+  <div class="blob b7"></div>
+</div>
+
+<!-- SCANLINE -->
+<div class="scanline" aria-hidden="true"></div>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header class="site-header">
+  <div class="header-left">
+    <svg class="header-logo" width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="STEELS / Lex Forensica">
+      <rect x="1" y="1" width="30" height="30" stroke="#00e5ff" stroke-width=".5" fill="none" opacity=".3"/>
+      <path d="M8 8 L16 4 L24 8 L24 24 L16 28 L8 24Z" stroke="#00e5ff" stroke-width=".4" fill="none" opacity=".5"/>
+      <circle cx="16" cy="16" r="4" stroke="#00e5ff" stroke-width=".4" fill="none" opacity=".6"/>
+      <line x1="16" y1="4" x2="16" y2="12" stroke="#00e5ff" stroke-width=".3" opacity=".3"/>
+      <line x1="16" y1="20" x2="16" y2="28" stroke="#00e5ff" stroke-width=".3" opacity=".3"/>
+      <line x1="8" y1="8" x2="12" y2="16" stroke="#00e5ff" stroke-width=".3" opacity=".3"/>
+      <line x1="24" y1="8" x2="20" y2="16" stroke="#00e5ff" stroke-width=".3" opacity=".3"/>
+    </svg>
+    <div>
+      <div class="header-title">STEELS · LEX FORENSICA</div>
+      <div class="header-version">Veřejná Vizuální Vrstva · Surface Layer</div>
+    </div>
+  </div>
+  <nav class="header-nav" aria-label="Hlavní navigace">
+    <a href="#hero" class="active">DOMŮ</a>
+    <a href="#surface">PLOCHY</a>
+    <a href="#relation">VZTAH</a>
+    <a href="introspect.html">INTROSPECT</a>
+    <a href="controlroom.html">CONTROL ROOM</a>
+  </nav>
+  <div class="header-status" role="status" aria-live="polite">
+    <span class="status-dot" aria-hidden="true"></span>
+    <span>SURFACE · ACTIVE</span>
+  </div>
+</header>
+
+<main class="page" id="top">
+
+  <!-- ═══════════════ HERO ═══════════════ -->
+  <section class="hero reveal" id="hero">
     <div class="hero-inner">
       <p class="eyebrow">STEELS / Lex Forensica</p>
-      <h1>Public visual interface for a forensic AI architecture</h1>
+      <h1>Veřejné vizuální rozhraní forenzní AI architektury</h1>
       <p class="lead">
-        This site is the live surface layer of the wider <strong>STEELS</strong> system and its formal
-        architecture layer, <strong>Lex Forensica</strong>. Its role is to translate internal structure
-        into navigable public form: entry pages, state views, Control Room routes, semantic inspection
-        surfaces, and visual maps of current development logic.
+        Tato stránka je živou povrchovou vrstvou širšího systému <strong>STEELS</strong> a jeho formální
+        architektonické vrstvy <strong>Lex Forensica</strong>. Její rolí je převést vnitřní strukturu
+        do navigovatelné veřejné podoby: vstupní stránky, pohledy na stav, trasy do Control Room,
+        sémantické inspekční plochy a vizuální mapy aktuální vývojové logiky.
       </p>
       <div class="hero-actions">
-        <a href="introspect.html" class="btn primary">Open Introspect</a>
-        <a href="controlroom.html" class="btn ghost">Go to Control Room</a>
+        <a href="introspect.html" class="btn primary">
+          <span class="btn-tag">→</span>
+          <span>Open Introspect</span>
+        </a>
+        <a href="controlroom.html" class="btn ghost">
+          <span class="btn-tag">Ω</span>
+          <span>Control Room</span>
+        </a>
+      </div>
+
+      <!-- Axial geometry marker -->
+      <div class="hero-axial" aria-hidden="true">
+        <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="hexGrid" width="20" height="17.32" patternUnits="userSpaceOnUse">
+              <polygon points="10,0 20,5 20,15 10,20 0,15 0,5" fill="none" stroke="#00e5ff" stroke-width=".25" opacity=".3"/>
+            </pattern>
+          </defs>
+          <rect width="200" height="120" fill="url(#hexGrid)"/>
+          <ellipse cx="100" cy="60" rx="80" ry="40" fill="none" stroke="#00e5ff" stroke-width=".4" opacity=".25" class="pulse-anim"/>
+          <ellipse cx="100" cy="60" rx="50" ry="25" fill="none" stroke="#7b2fff" stroke-width=".4" opacity=".25" class="breathe-anim"/>
+          <circle cx="100" cy="60" r="3" fill="#00e5ff" opacity=".5"/>
+        </svg>
       </div>
     </div>
 
     <!-- ENGINE STATE -->
-    <aside class="engine-card">
-      <h2>ENGINE STATE</h2>
+    <aside class="engine-card" aria-label="Engine state">
+      <div class="engine-card-header">
+        <h2>ENGINE STATE</h2>
+        <span class="engine-card-dot" aria-hidden="true"></span>
+      </div>
       <dl>
         <div>
           <dt>Version</dt>
@@ -26,11 +108,11 @@
         </div>
         <div>
           <dt>Mode</dt>
-          <dd>public interface aligned to Lex Forensica</dd>
+          <dd>public interface · Lex Forensica aligned</dd>
         </div>
         <div>
           <dt>State</dt>
-          <dd>active</dd>
+          <dd><span class="state-active">active</span></dd>
         </div>
         <div>
           <dt>Last structural review</dt>
@@ -42,73 +124,204 @@
         </div>
       </dl>
       <p class="engine-note">
-        This repository is the surface, not the whole engine. Its job is to make the architecture legible.
+        Tento repozitář je <em>povrch</em>, nikoli celý engine. Jeho úkolem je učinit architekturu čitelnou.
       </p>
     </aside>
   </section>
 
-  <!-- LIVE SURFACE MAP -->
-  <section class="surface">
-    <h2>Live system surface</h2>
-    <p>
-      The current live page structure should be understood as one connected surface. No page should feel isolated
-      or orphaned; each view is a different orientation on the same underlying Lex Forensica engine.
+  <!-- ═══════════════ LIVE SURFACE MAP ═══════════════ -->
+  <div class="sec-div reveal"><div class="sec-div-line"></div><div class="sec-div-label">Panel · Live System Surface</div><div class="sec-div-line"></div></div>
+
+  <section class="surface reveal" id="surface">
+    <h2>Živá systémová plocha</h2>
+    <p class="surface-lead">
+      Aktuální živou strukturu stránek je třeba chápat jako jednu propojenou plochu. Žádná stránka by neměla působit
+      izolovaně nebo osiřele; každý pohled je jinou orientací na tentýž základní engine Lex Forensica.
     </p>
 
-    <div class="surface-grid">
-      <article class="surface-card">
+    <div class="surface-grid" role="list">
+      <article class="surface-card surface-card--cyan" role="listitem">
+        <div class="surface-card-tag">ENTRY</div>
         <h3><code>index.html</code></h3>
-        <p>Primary entry point and orientation layer for the STEELS / Lex Forensica visual interface.</p>
+        <p>Primární vstupní bod a orientační vrstva vizuálního rozhraní STEELS / Lex Forensica.</p>
+        <div class="surface-card-link" aria-hidden="true">VSTOUPIT →</div>
       </article>
 
-      <article class="surface-card">
+      <article class="surface-card surface-card--cyan" role="listitem">
+        <a href="introspect.html" class="surface-card-anchor" aria-label="Otevřít introspect.html"></a>
+        <div class="surface-card-tag">SIGNAL CHAIN</div>
         <h3><code>introspect.html</code></h3>
-        <p>Reflective and signal‑chain view: how inputs move through the pipeline and loop‑cycle checks.</p>
+        <p>Reflektivní pohled na řetěz signálu: jak vstupy procházejí pipeline a kontrolami loop‑cycle.</p>
+        <div class="surface-card-link">VSTOUPIT →</div>
       </article>
 
-      <article class="surface-card">
+      <article class="surface-card surface-card--rose" role="listitem">
+        <a href="semanticview.html" class="surface-card-anchor" aria-label="Otevřít semanticview.html"></a>
+        <div class="surface-card-tag">FLUID · TOKENS</div>
         <h3><code>semanticview.html</code></h3>
-        <p>Semantic inspection and token‑oriented layer: bias, drift and lexicogrammatical analysis surfaces.</p>
+        <p>Sémantická inspekce a tokenově orientovaná vrstva: bias, drift a lexikogramatická analýza.</p>
+        <div class="surface-card-link">VSTOUPIT →</div>
       </article>
 
-      <article class="surface-card">
+      <article class="surface-card surface-card--purple" role="listitem">
+        <a href="ambient.html" class="surface-card-anchor" aria-label="Otevřít ambient.html"></a>
+        <div class="surface-card-tag">DEEP · AMBIENT</div>
         <h3><code>ambient.html</code></h3>
-        <p>Deep‑state / ambient layer: slower cognitive states, background processes, atmospheric signals.</p>
+        <p>Deep‑state / ambientní vrstva: pomalejší kognitivní stavy, pozadí, atmosférické signály.</p>
+        <div class="surface-card-link">VSTOUPIT →</div>
       </article>
 
-      <article class="surface-card">
+      <article class="surface-card surface-card--amber" role="listitem">
+        <a href="controlroom.html" class="surface-card-anchor" aria-label="Otevřít controlroom.html"></a>
+        <div class="surface-card-tag">CONTROL · Ω</div>
         <h3><code>controlroom.html</code></h3>
-        <p>Development‑state and network coordination surface, mirroring core repositories and blockers.</p>
+        <p>Vývojový stav a koordinace sítě, zrcadlí klíčové repozitáře a blokátory.</p>
+        <div class="surface-card-link">VSTOUPIT →</div>
       </article>
     </div>
   </section>
 
-  <!-- SYSTEM RELATION -->
-  <section class="relation">
-    <h2>System relation</h2>
-    <p>
-      SteelsSystem.github.io is not a generic landing page and not merely a personal homepage. It is the
-      public‑facing visual shell of a neuro‑symbolic metacognitive system built around recursive state control,
-      linguistic integrity, symbolic routing, and layered system perception.
+  <!-- ═══════════════ SYSTEM RELATION ═══════════════ -->
+  <div class="sec-div reveal"><div class="sec-div-line"></div><div class="sec-div-label">Panel · System Relation</div><div class="sec-div-line"></div></div>
+
+  <section class="relation reveal" id="relation">
+    <h2>Vztah systému</h2>
+    <p class="relation-lead">
+      SteelsSystem.github.io není generická vstupní stránka ani pouze osobní homepage. Je to veřejně‑čelní
+      vizuální plášť neuro‑symbolického metakognitivního systému postaveného kolem rekurzivní kontroly stavu,
+      lingvistické integrity, symbolického směrování a vrstvené systémové percepce.
     </p>
 
     <div class="relation-grid">
-      <div class="relation-item">
+      <div class="relation-item relation-item--cyan">
+        <div class="relation-tag">ENTRY</div>
         <h3>SteelsSystem.github.io</h3>
-        <p>Public visual interface and navigation surface.</p>
+        <p>Veřejné vizuální rozhraní a navigační plocha.</p>
       </div>
-      <div class="relation-item">
+      <div class="relation-item relation-item--purple">
+        <div class="relation-tag">CORE</div>
         <h3>Lex Forensica</h3>
-        <p>Core axioms, terminology, integrity logic and symbolic architecture of the STEELS system.</p>
+        <p>Klíčové axiomy, terminologie, logika integrity a symbolická architektura systému STEELS.</p>
       </div>
-      <div class="relation-item">
-        <h3>Experimental repos</h3>
-        <p>Testing layers, mirrored structures, prototypes and branch logic.</p>
+      <div class="relation-item relation-item--amber">
+        <div class="relation-tag">LAB</div>
+        <h3>Experimentální repozitáře</h3>
+        <p>Testovací vrstvy, zrcadlené struktury, prototypy a větevní logika.</p>
       </div>
-      <div class="relation-item">
-        <h3>Private / internal</h3>
-        <p>Unfinished rails, notes, staging and non‑public working structures.</p>
+      <div class="relation-item relation-item--rose">
+        <div class="relation-tag">VAULT</div>
+        <h3>Privátní / interní</h3>
+        <p>Nedokončené koleje, poznámky, staging a neveřejné pracovní struktury.</p>
       </div>
     </div>
   </section>
+
+  <!-- ═══════════════ CLOSING STAMP ═══════════════ -->
+  <div class="reveal stamp-wrap">
+    <div class="final-stamp">
+      STEELS · LEX FORENSICA · 2026<br>
+      VEŘEJNÁ VIZUÁLNÍ VRSTVA · SURFACE LAYER<br>
+      ARCHITECTURE: A1–A13 + CoC · TERMINOLOGY: CS-FIRST<br>
+      STATE: ACTIVE · LAST REVIEW: 2026‑05‑03
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    SteelsSystem · Lex Forensica · 2026<br>
+    <a href="https://github.com/SteelsSystem/lexforensica" target="_blank" rel="noopener noreferrer">GitHub</a>
+    · <a href="introspect.html">Introspect</a>
+    · <a href="semanticview.html">Semantic View</a>
+    · <a href="ambient.html">Ambient</a>
+    · <a href="controlroom.html">Control Room</a>
+  </footer>
 </main>
+
+<script>
+/* ═══════════════════════════════════════════════
+   ASYNC / DEFERRED INIT
+   - reduced-motion guard
+   - rAF-batched reveal observer
+   - lazy lava activation (after first paint, if motion allowed)
+   ═══════════════════════════════════════════════ */
+(function(){
+  'use strict';
+
+  const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const root = document.documentElement;
+  if (prefersReducedMotion) root.classList.add('reduced-motion');
+
+  // Reveal-on-scroll: rAF-coalesced, non-blocking
+  function initReveal(){
+    if (!('IntersectionObserver' in window)) {
+      document.querySelectorAll('.reveal').forEach(el => el.classList.add('on'));
+      return;
+    }
+    let pending = new Set();
+    let scheduled = false;
+    const flush = () => {
+      scheduled = false;
+      pending.forEach(el => el.classList.add('on'));
+      pending.clear();
+    };
+    const obs = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          pending.add(e.target);
+          obs.unobserve(e.target);
+        }
+      }
+      if (!scheduled) {
+        scheduled = true;
+        requestAnimationFrame(flush);
+      }
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  }
+
+  // Section -> nav active state (rAF-coalesced)
+  function initNavSpy(){
+    if (!('IntersectionObserver' in window)) return;
+    const links = document.querySelectorAll('.header-nav a[href^="#"]');
+    if (!links.length) return;
+    const obs = new IntersectionObserver((entries) => {
+      requestAnimationFrame(() => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            links.forEach(l => l.classList.remove('active'));
+            const link = document.querySelector('.header-nav a[href="#' + e.target.id + '"]');
+            if (link) link.classList.add('active');
+          }
+        }
+      });
+    }, { threshold: 0.25 });
+    document.querySelectorAll('section[id], div[id="hero"]').forEach(s => obs.observe(s));
+  }
+
+  // Lazy-activate lava (heavy filter:blur) only after idle + motion allowed
+  function initLava(){
+    const wrap = document.querySelector('[data-defer="lava"]');
+    if (!wrap) return;
+    if (prefersReducedMotion) { wrap.classList.add('lava-static'); return; }
+    wrap.classList.add('lava-ready');
+  }
+
+  function boot(){
+    initReveal();
+    initNavSpy();
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(initLava, { timeout: 1200 });
+    } else {
+      setTimeout(initLava, 200);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>
