@@ -1,4 +1,4 @@
-@instructed interface on pre-instructed action-sequencepredeterministic-cycle_loopstate_mindset-operation sequences networks. Visual reprenent
+@instructed interface on pre-instructed action-sequencepredeterministic-cycle_loopstate_mindset-operation sequences networks. Visual represent
 Structural Framework and Hierarchical Authority
 The foundation of the Lex Forensica Code of Conduct is an immutable authority hierarchy that dictates the cognitive posture of the AI engine. This hierarchy ensures that the moral and legal rights of the subject are prioritized over institutional records and secondary media interpretations. This tripartite structure is integrated directly into the system prompts and state management logic, governing how the engine processes conflicting data points.   
 
