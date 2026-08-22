@@ -15,6 +15,10 @@ const metadata: Record<string, { title: string; description: string }> = {
     title: "Narrative Engine — Lex Forensica",
     description: "A guided, evidence-bound conversation through the AI-Forensica pipeline.",
   },
+  "/engine/chat": {
+    title: "Chat — Lex Forensica",
+    description: "The Lex Forensica narrative engine chat workspace.",
+  },
   "/axioms": {
     title: "Axioms & Metaconduct — Lex Forensica",
     description: "A1–A6, TRIPARTITE, RULE_001, and operating constraints.",
@@ -40,7 +44,7 @@ function Shell() {
       <header className="app-header">
         <Link to="/">LEX FORENSICA</Link>
         <nav aria-label="Primary navigation">
-          <Link to="/engine">ENGINE / CHAT</Link>
+          <Link to="/engine/chat">ENGINE / CHAT</Link>
           <Link to="/axioms">AXIOMS</Link>
           <Link to="/limits">LIMITS</Link>
         </nav>
@@ -50,12 +54,13 @@ function Shell() {
       <Routes>
         <Route path="/" element={<IndexRoute />} />
         <Route path="/engine" element={<EngineRoute />} />
+        <Route path="/engine/chat" element={<EngineRoute />} />
         <Route path="/axioms" element={<AxiomsRoute />} />
         <Route path="/limits" element={<LimitsRoute />} />
       </Routes>
 
       <footer>
-        LEX FORENSICA · <a href="https://github.com/SteelsSystem/lexforensica">GitHub project</a> · <Link to="/">Living Archive</Link> · <Link to="/engine">Control Room</Link>
+        LEX FORENSICA · <a href="https://github.com/SteelsSystem/lexforensica">GitHub project</a> · <Link to="/">Living Archive</Link> · <Link to="/engine/chat">Chat</Link>
       </footer>
     </>
   );
