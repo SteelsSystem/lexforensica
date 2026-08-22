@@ -1,0 +1,2 @@
+import { AXIOMS } from "../lib/forensics/doctrine";
+export default function AxiomsRoute() { return <main className="page-route"><p className="eyebrow">AXIOMS & METACONDUCT</p><h1>Operating constraints</h1><p>TRIPARTITE: institutional record, subject voice, forensic synthesis. RULE_001 blocks substantive synthesis until both source accounts are present.</p><div className="axiom-grid">{Object.entries(AXIOMS).map(([id, label]) => <article key={id}><b>{id}</b><h2>{label}</h2></article>)}</div></main>; }
