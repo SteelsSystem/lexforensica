@@ -1,0 +1,33 @@
+:root {
+  color-scheme: dark;
+  --ground: oklch(0.12 0.018 235);
+  --ground-raised: oklch(0.16 0.024 235 / 0.78);
+  --panel: oklch(0.18 0.025 235 / 0.72);
+  --line-subtle: oklch(0.78 0.12 205 / 0.2);
+  --ink: oklch(0.92 0.018 230);
+  --ink-muted: oklch(0.68 0.035 235);
+  --signal-system: oklch(0.84 0.15 210);
+  --signal-structure: oklch(0.55 0.22 300);
+  --signal-flag: oklch(0.8 0.16 78);
+  --signal-traceable: oklch(0.72 0.15 165);
+  --signal-blocked: oklch(0.66 0.2 25);
+  --font-system: "JetBrains Mono", monospace;
+  --font-doctrine: "IM Fell English", Georgia, serif;
+}
+* { box-sizing: border-box; }
+html, body, #root { min-height: 100%; margin: 0; }
+body { background: var(--ground); color: var(--ink); font-family: var(--font-system); }
+a { color: inherit; }
+.app-header, footer { position: relative; z-index: 1; display: flex; gap: 1rem; align-items: center; padding: 1rem 1.5rem; border-color: var(--line-subtle); }
+.app-header { border-bottom: 1px solid var(--line-subtle); }
+.app-header nav { display: flex; gap: .75rem; }
+footer { border-top: 1px solid var(--line-subtle); color: var(--ink-muted); }
+.panel { background: var(--panel); border: 1px solid var(--line-subtle); backdrop-filter: blur(12px); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
