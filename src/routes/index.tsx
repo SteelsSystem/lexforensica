@@ -1,0 +1,2 @@
+import { Link } from "react-router-dom";
+export default function IndexRoute() { return <main className="page-route landing"><p className="eyebrow">LEX FORENSICA / LIVING ARCHIVE</p><h1>A dignity-first forensic narrative system.</h1><p>Read institutional records with the subject's own account intact. The Narrative Engine separates supplied text, attribution, inference, unresolved questions, and evidence gaps.</p><div className="landing-actions"><Link to="/engine">OPEN ENGINE →</Link><Link to="/axioms">READ AXIOMS →</Link></div></main>; }
