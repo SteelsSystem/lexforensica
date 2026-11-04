@@ -16,7 +16,7 @@ export const axiomHitSchema = z.object({
   axiom: z.enum(["A1", "A2", "A3", "A4", "A5", "A6"]),
   confidence: z.enum(["possible", "supported", "strongly_supported"]),
   basis: z.string().min(1),
-  sourceQuotes: z.array(z.string().min(1)).min(1),
+  sourceQuotes: z.array(z.string().min(1)),
 });
 
 export const narrativeGapSchema = z.object({
