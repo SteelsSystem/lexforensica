@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { FORENSIC_SYSTEM_PROMPT } from "../../lib/forensics/prompt";
 import { applySourceInputs, getOrCreateSession, setStage } from "../../lib/forensics/session";
 import { chatRequestSchema, findingPayloadSchema, type FindingPayload } from "../../lib/forensics/schema";
+import { deriveSelfAudit } from "../../lib/forensics/audit";
 
 export const chatRouter = Router();
 
@@ -86,15 +87,16 @@ chatRouter.post("/", async (req, res) => {
     const verified = verifyQuotedSupport(findings, state);
     const finding = { id: randomUUID(), createdAt: Date.now(), payload: verified };
     state.findings.push(finding);
-    const audit = {
-      stage: state.stage,
-      dignityPriority: "PASS" as const,
-      subjectVoice: "PRESENT" as const,
-      attribution: "PASS" as const,
-      coherence: "REVIEWED" as const,
-      unsupportedFacts: "NONE_IDENTIFIED" as const,
-      institutionalFramingDrift: "NONE_IDENTIFIED" as const,
-    };
+    // No independent dignity, attribution-span, coherence, unsupported-fact,
+    // or framing-drift verifier is wired into this route yet. Fail closed:
+    // missing verification must remain REVIEW, never be rendered as PASS.
+    const audit = deriveSelfAudit(state, {
+      dignityPriority: false,
+      attribution: false,
+      coherence: false,
+      unsupportedFacts: false,
+      institutionalFramingDrift: false,
+    });
     state.lastAudit = audit;
     res.json({ content: decoded.content || "Analysis completed.", finding, audit, session: state });
   } catch (error) {
