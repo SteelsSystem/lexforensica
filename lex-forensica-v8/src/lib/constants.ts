@@ -1,50 +1,153 @@
 // LEX FORENSICA v8.0 — Operational Constants
 
-import { OperationalAxiom, InstitutionType } from '../types';
+import { OperationalAxiom, AxiomSeverity, InstitutionType } from '../types';
 
 // ---------------------------------------------------------------------------
-// AXIOM_DEFINITIONS
+// AXIOM_DEFINITIONS — canonical A1–A13 catalogue
 // ---------------------------------------------------------------------------
+//
+// Severity is an internal validation priority, not a legal finding.
+// legalBasis is a provisional legal-reference crosswalk, not a conclusion
+// that a cited provision applies or that a violation has occurred.
+// Keep names, descriptions, severity, detection signals and targets here;
+// prompts and UI layers should consume this catalogue rather than redefine it.
+
+export interface OperationalAxiomDefinition {
+  name: string;
+  description: string;
+  legalBasis: string;
+  severity: AxiomSeverity;
+  detectionSignal: string;
+  outputTarget: string;
+}
 
 export const AXIOM_DEFINITIONS: Record<
   OperationalAxiom,
-  { name: string; description: string; legalBasis: string }
+  OperationalAxiomDefinition
 > = {
   [OperationalAxiom.A1_FORENSIC_SPOLIATION]: {
     name: 'Forensic Spoliation',
+    severity: AxiomSeverity.HIGH,
+    detectionSignal: 'documentationGaps',
+    outputTarget: 'axiomaticViolations',
     description:
       'Absence of documentation does not equal absence of event. Missing records, destroyed files, or incomplete logs are treated as potential evidence of concealment. The burden falls on the institution to demonstrate that the undocumented period was uneventful, not on the subject to prove what was never written down.',
     legalBasis: 'ECHR Art. 3 (prohibition of inhuman treatment), ECHR Art. 13 (right to effective remedy)',
   },
   [OperationalAxiom.A2_SEMANTIC_NEUTRALIZATION]: {
     name: 'Semantic Neutralization',
+    severity: AxiomSeverity.HIGH,
+    detectionSignal: 'complianceTermsWithoutDateContext',
+    outputTarget: 'discrepancyMatrix',
     description:
       'Compliance-framing language in institutional records masks coercive acts behind neutral terminology. Any finding invoking behavioural compliance or non-compliance must be anchored to a specific incident date and context. Undated or decontextualised compliance claims are forensically void.',
     legalBasis: 'ECHR Art. 6 (right to a fair trial — requirement of reasoned decisions)',
   },
   [OperationalAxiom.A3_IATROGENIC_ATTRIBUTION]: {
     name: 'Iatrogenic Attribution',
+    severity: AxiomSeverity.HIGH,
+    detectionSignal: 'iatrogenicTerms',
+    outputTarget: 'iatrogenicReview',
     description:
       'Effects caused by institutional interventions (medication, detention conditions, procedural stress) must be distinguished from pre-existing symptoms. Conflating iatrogenic harm with underlying condition to justify continued intervention constitutes a logical and ethical breach.',
     legalBasis: 'ECHR Art. 3 (prohibition of inhuman or degrading treatment), CRPD Art. 25 (right to health on an equal basis)',
   },
   [OperationalAxiom.A4_EPISTEMIC_CIRCULARITY]: {
     name: 'Epistemic Circularity',
+    severity: AxiomSeverity.MEDIUM,
+    detectionSignal: 'circularTerms',
+    outputTarget: 'falsifiabilityCheck',
     description:
       'A diagnostic or legal conclusion that is immune to falsification — where any counter-evidence is reinterpreted as confirming the original hypothesis — is epistemically invalid. Such conclusions cannot ground judicial decisions or coercive interventions.',
     legalBasis: 'ECHR Art. 6(1) (right to fair trial — requirement of impartial and reasoned adjudication)',
   },
   [OperationalAxiom.A5_STRUCTURAL_BIAS]: {
     name: 'Structural Bias',
+    severity: AxiomSeverity.MEDIUM,
+    detectionSignal: 'repeatedExpertAssessments',
+    outputTarget: 'axiomaticViolations',
     description:
       'When a single expert or expert body conducts multiple sequential assessments in the same case — particularly in proceedings involving coercion — institutional bias is presumed. Each assessment reinforces prior framing rather than providing independent scrutiny. This structural arrangement violates the requirement of impartiality.',
     legalBasis: 'ECHR Art. 6(1) (requirement of an independent and impartial tribunal), CRPD Art. 12 (equal recognition before the law)',
   },
   [OperationalAxiom.A6_JUDICIAL_ABANDONMENT]: {
     name: 'Judicial Abandonment',
+    severity: AxiomSeverity.HIGH,
+    detectionSignal: 'judicialTermsWithoutIndependentAssessment',
+    outputTarget: 'legalMatrix',
     description:
       'When a court delegates its substantive decision-making power to expert opinion without exercising independent legal review — particularly in liberty-restricting proceedings — it abdicates its constitutional function. The judge must assess legal criteria independently; expert opinion informs but cannot replace judicial reasoning.',
     legalBasis: 'ECHR Art. 5(4) (right to review of lawfulness of detention), ECHR Art. 6(1) (right to determination by an independent tribunal)',
+  },
+  [OperationalAxiom.A7_TEMPORAL_TAMPERING]: {
+    name: 'Temporal Tampering',
+    severity: AxiomSeverity.HIGH,
+    detectionSignal: 'timestampDrift',
+    outputTarget: 'chronologyTimeline',
+    description:
+      'Compare event dates, timestamps, sequence order, source metadata, and independently anchored events. A mismatch is a temporal anomaly that must be preserved and reconciled; it is not, by itself, proof of intentional alteration.',
+    legalBasis:
+      'ECHR Art. 6(1); GDPR Art. 5(1)(d) (accuracy principle; applicability depends on the proceeding and personal-data processing context).',
+  },
+  [OperationalAxiom.A8_PHARMACOKINETIC_OMISSION]: {
+    name: 'Pharmacokinetic Omission',
+    severity: AxiomSeverity.HIGH,
+    detectionSignal: 'halfLifeGap',
+    outputTarget: 'iatrogenicLoadIndex',
+    description:
+      'Compare medication formulation, dose, administration dates, known pharmacokinetic sources, release profile, half-life, active metabolites, washout interval, and symptom onset. A missing interval is an evidence gap, not a causal conclusion. Duration alone must not be converted into a causal score; any load index is descriptive and must expose its assumptions and uncertainty.',
+    legalBasis:
+      'CRPD Art. 15 and Art. 25 (potentially relevant protections; applicability and the factual nexus require review).',
+  },
+  [OperationalAxiom.A9_EVIDENTIARY_ASYMMETRY]: {
+    name: 'Evidentiary Asymmetry',
+    severity: AxiomSeverity.HIGH,
+    detectionSignal: 'unverifiedHearsay',
+    outputTarget: 'discrepancyMatrix',
+    description:
+      'Classify each proposition by provenance: direct observation, contemporaneous record, party account, hearsay, or inference. Do not silently promote unverified hearsay into established fact or discount a first-person account solely because it is not formatted as an institutional record. Record corroboration and uncertainty.',
+    legalBasis:
+      'ECHR Art. 6(3)(d) (the witness-examination guarantee, where the criminal limb and its scope are engaged).',
+  },
+  [OperationalAxiom.A10_ALGORITHMIC_OPACITY]: {
+    name: 'Algorithmic Opacity',
+    severity: AxiomSeverity.MEDIUM,
+    detectionSignal: 'unexplainedScoring',
+    outputTarget: 'auditResponse',
+    description:
+      'For material scores or automated recommendations, expose the system and model version, input provenance, rule path, thresholds, reason codes, uncertainty, and human-review status. An unexplained score is an auditability defect; a score is not, by itself, a legal or clinical conclusion.',
+    legalBasis:
+      'GDPR Art. 22 (where solely automated decision-making with legal or similarly significant effects is engaged); Regulation (EU) 2024/1689, Art. 14 (where applicable high-risk AI human-oversight duties are engaged).',
+  },
+  [OperationalAxiom.A11_FINANCIAL_LEDGER_COERCION]: {
+    name: 'Financial & Ledger Coercion',
+    severity: AxiomSeverity.HIGH,
+    detectionSignal: 'custodialFreeze',
+    outputTarget: 'financialForensicPolicy',
+    description:
+      'For a freeze, custody flag, delayed transfer, or ledger restriction, preserve the instrument and stated authority, actor, affected asset, timestamps, notices, transaction trail, scope, duration, and available review route. Distinguish a technical hold, contractual restriction, regulatory measure, and legal seizure. A ledger entry alone does not establish coercion or illegality.',
+    legalBasis:
+      'MiCA (Regulation (EU) 2023/1114; the report-cited Recital 22 requires scope verification), PSD2 (Directive (EU) 2015/2366; scope verification required), and ECHR Protocol No. 1, Art. 1 (where property rights are engaged).',
+  },
+  [OperationalAxiom.A12_CHAIN_OF_CUSTODY_FRACTURE]: {
+    name: 'Chain-of-Custody Fracture',
+    severity: AxiomSeverity.HIGH,
+    detectionSignal: 'hashMismatch',
+    outputTarget: 'verifyIntegrity',
+    description:
+      'Preserve each evidence object’s source identifier, original bytes, acquisition metadata, hash algorithm and digest, timestamps, handler, access history, and every transformation. A hash mismatch triggers quarantine and re-verification; it is not automatic proof of tampering. A valid hash alone does not prove source authenticity or an unbroken chain of custody.',
+    legalBasis:
+      'DORA (Regulation (EU) 2022/2554, Art. 11, where the entity and activity are in scope); ECHR Art. 13 (where an arguable Convention claim and effective-remedy issue are engaged).',
+  },
+  [OperationalAxiom.A13_COUNTER_POWER_SUPPRESSION]: {
+    name: 'Counter-Power Suppression',
+    severity: AxiomSeverity.CRITICAL,
+    detectionSignal: 'counselAccessDenial',
+    outputTarget: 'legalBriefDraft',
+    description:
+      'Record any denial, delay, or interference affecting access to counsel, relevant case materials, or the ability to lodge a complaint or application, with the request, response, dates, decision-maker, stated reason, and available remedy. Do not infer waiver from non-use without evidence, and do not presume suppression from delay alone; route urgent rights-preservation issues for human review.',
+    legalBasis:
+      'ECHR Art. 34 (the duty not to hinder effective exercise of the right of individual application); CRPD Art. 13 (access to justice).',
   },
 };
 
