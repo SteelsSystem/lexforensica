@@ -11,7 +11,7 @@ export const chatRouter = Router();
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
-function verifyQuotedSupport(payload: FindingPayload, state: { institutionalRecord?: string; subjectVoice?: string }) {
+export function verifyQuotedSupport(payload: FindingPayload, state: { institutionalRecord?: string; subjectVoice?: string }) {
   const corpus = `${state.institutionalRecord || ""}\n${state.subjectVoice || ""}`;
   return {
     ...payload,
@@ -19,7 +19,7 @@ function verifyQuotedSupport(payload: FindingPayload, state: { institutionalReco
       const supportedQuotes = hit.sourceQuotes.filter((quote) => corpus.includes(quote));
       if (supportedQuotes.length) return { ...hit, sourceQuotes: supportedQuotes };
       return { ...hit, confidence: "possible" as const, basis: `${hit.basis} Evidence quotation could not be verified against supplied session text.`, sourceQuotes: [] };
-    }).filter((hit) => hit.sourceQuotes.length > 0),
+    }),
   };
 }
 
