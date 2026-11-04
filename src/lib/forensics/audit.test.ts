@@ -38,3 +38,29 @@ test("a status changes only when its corresponding verifier result changes", () 
   assert.equal(audit.coherence, "REVIEWED");
   assert.equal(audit.dignityPriority, "REVIEW");
 });
+
+import { verifyQuotedSupport } from "../../routes/api/chat";
+
+test("unverifiable model hits remain visible as possible, without fabricated source quotes", () => {
+  const payload = {
+    stage: "DEEP_1" as const,
+    claims: [],
+    axiomHits: [{
+      axiom: "A4" as const,
+      confidence: "strongly_supported" as const,
+      basis: "Model-supplied basis",
+      sourceQuotes: ["quote not present in supplied material"],
+    }],
+    narrativeGaps: [],
+    frameworkFlags: [],
+    prepNotes: [],
+  };
+  const result = verifyQuotedSupport(payload, {
+    institutionalRecord: "institutional text",
+    subjectVoice: "subject text",
+  });
+  assert.equal(result.axiomHits.length, 1);
+  assert.equal(result.axiomHits[0].confidence, "possible");
+  assert.deepEqual(result.axiomHits[0].sourceQuotes, []);
+  assert.match(result.axiomHits[0].basis, /could not be verified/);
+});
