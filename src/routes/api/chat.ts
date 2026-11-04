@@ -4,13 +4,14 @@ import { randomUUID } from "node:crypto";
 import { FORENSIC_SYSTEM_PROMPT } from "../../lib/forensics/prompt";
 import { applySourceInputs, getOrCreateSession, setStage } from "../../lib/forensics/session";
 import { chatRequestSchema, findingPayloadSchema, type FindingPayload } from "../../lib/forensics/schema";
+import { deriveSelfAudit } from "../../lib/forensics/audit";
 
 export const chatRouter = Router();
 
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
-function verifyQuotedSupport(payload: FindingPayload, state: { institutionalRecord?: string; subjectVoice?: string }) {
+export function verifyQuotedSupport(payload: FindingPayload, state: { institutionalRecord?: string; subjectVoice?: string }) {
   const corpus = `${state.institutionalRecord || ""}\n${state.subjectVoice || ""}`;
   return {
     ...payload,
@@ -18,7 +19,7 @@ function verifyQuotedSupport(payload: FindingPayload, state: { institutionalReco
       const supportedQuotes = hit.sourceQuotes.filter((quote) => corpus.includes(quote));
       if (supportedQuotes.length) return { ...hit, sourceQuotes: supportedQuotes };
       return { ...hit, confidence: "possible" as const, basis: `${hit.basis} Evidence quotation could not be verified against supplied session text.`, sourceQuotes: [] };
-    }).filter((hit) => hit.sourceQuotes.length > 0),
+    }),
   };
 }
 
@@ -86,15 +87,16 @@ chatRouter.post("/", async (req, res) => {
     const verified = verifyQuotedSupport(findings, state);
     const finding = { id: randomUUID(), createdAt: Date.now(), payload: verified };
     state.findings.push(finding);
-    const audit = {
-      stage: state.stage,
-      dignityPriority: "PASS" as const,
-      subjectVoice: "PRESENT" as const,
-      attribution: "PASS" as const,
-      coherence: "REVIEWED" as const,
-      unsupportedFacts: "NONE_IDENTIFIED" as const,
-      institutionalFramingDrift: "NONE_IDENTIFIED" as const,
-    };
+    // No independent dignity, attribution-span, coherence, unsupported-fact,
+    // or framing-drift verifier is wired into this route yet. Fail closed:
+    // missing verification must remain REVIEW, never be rendered as PASS.
+    const audit = deriveSelfAudit(state, {
+      dignityPriority: false,
+      attribution: false,
+      coherence: false,
+      unsupportedFacts: false,
+      institutionalFramingDrift: false,
+    });
     state.lastAudit = audit;
     res.json({ content: decoded.content || "Analysis completed.", finding, audit, session: state });
   } catch (error) {
