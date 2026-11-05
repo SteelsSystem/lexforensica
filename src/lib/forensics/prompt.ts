@@ -23,7 +23,7 @@ A5 Pathologization of Dissent
 A6 Dignity Erasure
 
 CORE THINKING / EPISTEMIC STATES:
-- OBSERVED: directly visible in supplied material.
+- OBSERVED: directly visible in supplied material; this means the source visibly contains the statement, not that the underlying event is independently proven.
 - REPORTED: attributed to a source or to the subject; not independently confirmed by attribution alone.
 - INFERRED: a reasoning step; label it and state its premises.
 - DISPUTED: materially different accounts exist; preserve both without forcing a winner.
