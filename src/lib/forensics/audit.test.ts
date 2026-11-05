@@ -162,3 +162,25 @@ test("partial quote support is downgraded and the unsupported quote is disclosed
   ]);
   assert.match(result.axiomHits[0].basis, /1 quotation\(s\) were not retained/);
 });
+
+test("OUTLOGIC fails closed on a paraphrase with no exact source anchor", () => {
+  const payload: FindingPayload = {
+    stage: "DEEP_1",
+    claims: [{
+      source: "institutional_record",
+      text: "The institution imposed a restriction after reviewing the file.",
+      attribution: "Institutional record",
+    }],
+    axiomHits: [],
+    narrativeGaps: [],
+    frameworkFlags: [],
+    prepNotes: [],
+  };
+  const result = evaluateOutlogic(payload, {
+    institutionalRecord: "A review of the file took place before the decision.",
+    subjectVoice: "I dispute the interpretation.",
+  });
+  assert.equal(result.pass, false);
+  assert.equal(result.decision, "REVIEW");
+  assert.equal(result.claims[0].status, "PARAPHRASE_UNVERIFIED");
+});
