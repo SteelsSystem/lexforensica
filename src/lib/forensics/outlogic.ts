@@ -92,10 +92,13 @@ export function evaluateOutlogic(
       : exactTextMatched
         ? "SOURCE_ANCHORED" as const
         : "PARAPHRASE_UNVERIFIED" as const;
+    const epistemicStatus = claim.epistemicStatus === "OBSERVED" && !exactTextMatched
+      ? "UNVERIFIED" as const
+      : claim.epistemicStatus;
     return {
       index,
       source: claim.source,
-      epistemicStatus: claim.epistemicStatus,
+      epistemicStatus,
       exactTextMatched,
       specificAnchors,
       unsupportedAnchors,
