@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { deriveSelfAudit } from "./audit";
 import { evaluateOutlogic } from "./outlogic";
-import type { FindingPayload } from "./schema";
+import { claimSchema, type FindingPayload } from "./schema";
 
 const noChecks = {
   dignityPriority: false,
@@ -212,7 +212,6 @@ test("OUTLOGIC fails closed on a paraphrase with no exact source anchor", () => 
   assert.equal(result.claims[0].status, "PARAPHRASE_UNVERIFIED");
 });
 
-import { claimSchema } from "./schema";
 
 test("claim schemas default missing epistemic labels to UNKNOWN", () => {
   const claim = claimSchema.parse({
