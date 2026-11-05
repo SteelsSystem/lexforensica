@@ -5,6 +5,7 @@ import { FORENSIC_SYSTEM_PROMPT } from "../../lib/forensics/prompt";
 import { applySourceInputs, getOrCreateSession, setStage } from "../../lib/forensics/session";
 import { chatRequestSchema, findingPayloadSchema, type FindingPayload } from "../../lib/forensics/schema";
 import { deriveSelfAudit } from "../../lib/forensics/audit";
+import { evaluateOutlogic } from "../../lib/forensics/outlogic";
 
 export const chatRouter = Router();
 
@@ -85,11 +86,23 @@ chatRouter.post("/", async (req, res) => {
     const decoded = JSON.parse(response.text || "{}") as { content?: string; findings?: unknown };
     const findings = findingPayloadSchema.parse(decoded.findings);
     const verified = verifyQuotedSupport(findings, state);
+    const outlogic = evaluateOutlogic(verified, state);
+
+    // OUTLOGIC is a deterministic second gate for DEFENSE. Earlier stages may
+    // expose REVIEW/HOLD results, but a blocked draft is not stored as a finding.
+    if (state.stage === "DEFENSE" && !outlogic.pass) {
+      return res.status(409).json({
+        error: "OUTLOGIC_BLOCKED",
+        message: "Defense synthesis is on hold: source-anchor checks require review.",
+        outlogic,
+        session: state,
+      });
+    }
+
     const finding = { id: randomUUID(), createdAt: Date.now(), payload: verified };
     state.findings.push(finding);
-    // No independent dignity, attribution-span, coherence, unsupported-fact,
-    // or framing-drift verifier is wired into this route yet. Fail closed:
-    // missing verification must remain REVIEW, never be rendered as PASS.
+    // The broader dignity, attribution-span, coherence, and framing-drift
+    // verifiers are not wired into this route. Their statuses remain REVIEW.
     const audit = deriveSelfAudit(state, {
       dignityPriority: false,
       attribution: false,
@@ -98,7 +111,7 @@ chatRouter.post("/", async (req, res) => {
       institutionalFramingDrift: false,
     });
     state.lastAudit = audit;
-    res.json({ content: decoded.content || "Analysis completed.", finding, audit, session: state });
+    res.json({ content: decoded.content || "Analysis completed.", finding, audit, outlogic, session: state });
   } catch (error) {
     res.status(502).json({ error: "AI_RESPONSE_REJECTED", message: error instanceof Error ? error.message : "Provider response rejected." });
   }
