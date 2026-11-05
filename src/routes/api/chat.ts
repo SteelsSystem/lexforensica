@@ -18,8 +18,14 @@ export function verifyQuotedSupport(payload: FindingPayload, state: { institutio
     ...payload,
     axiomHits: payload.axiomHits.map((hit) => {
       const supportedQuotes = hit.sourceQuotes.filter((quote) => corpus.includes(quote));
-      if (supportedQuotes.length) return { ...hit, sourceQuotes: supportedQuotes };
-      return { ...hit, confidence: "possible" as const, basis: `${hit.basis} Evidence quotation could not be verified against supplied session text.`, sourceQuotes: [] };
+      const unsupportedQuotes = hit.sourceQuotes.length - supportedQuotes.length;
+      if (unsupportedQuotes === 0) return { ...hit, sourceQuotes: supportedQuotes };
+      return {
+        ...hit,
+        confidence: "possible" as const,
+        basis: `${hit.basis} Evidence quotation could not be verified against supplied session text; ${unsupportedQuotes} quotation(s) were not retained.`,
+        sourceQuotes: supportedQuotes,
+      };
     }),
   };
 }
