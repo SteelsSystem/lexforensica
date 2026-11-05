@@ -134,3 +134,31 @@ test("OUTLOGIC holds when one RULE_001 source channel is missing", () => {
   assert.deepEqual(result.sourceChannels.missing, ["subject_voice"]);
   assert.ok(result.decisionStates.includes("VETO"));
 });
+
+test("partial quote support is downgraded and the unsupported quote is disclosed", () => {
+  const payload = {
+    stage: "DEEP_1" as const,
+    claims: [],
+    axiomHits: [{
+      axiom: "A4" as const,
+      confidence: "strongly_supported" as const,
+      basis: "Model-supplied basis",
+      sourceQuotes: [
+        "A quotation present in the institutional record.",
+        "A quotation that does not exist in the source.",
+      ],
+    }],
+    narrativeGaps: [],
+    frameworkFlags: [],
+    prepNotes: [],
+  };
+  const result = verifyQuotedSupport(payload, {
+    institutionalRecord: "A quotation present in the institutional record.",
+    subjectVoice: "Subject account.",
+  });
+  assert.equal(result.axiomHits[0].confidence, "possible");
+  assert.deepEqual(result.axiomHits[0].sourceQuotes, [
+    "A quotation present in the institutional record.",
+  ]);
+  assert.match(result.axiomHits[0].basis, /1 quotation\(s\) were not retained/);
+});
