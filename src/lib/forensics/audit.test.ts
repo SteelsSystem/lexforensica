@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { deriveSelfAudit } from "./audit";
+import { evaluateOutlogic } from "./outlogic";
+import { claimSchema, type FindingPayload } from "./schema";
 
 const noChecks = {
   dignityPriority: false,
@@ -44,7 +46,12 @@ import { verifyQuotedSupport } from "../../routes/api/chat";
 test("unverifiable model hits remain visible as possible, without fabricated source quotes", () => {
   const payload = {
     stage: "DEEP_1" as const,
-    claims: [],
+    claims: [{
+      source: "institutional_record" as const,
+      epistemicStatus: "OBSERVED" as const,
+      text: "A quotation present in the institutional record.",
+      attribution: "Institutional record",
+    }],
     axiomHits: [{
       axiom: "A4" as const,
       confidence: "strongly_supported" as const,
@@ -63,4 +70,154 @@ test("unverifiable model hits remain visible as possible, without fabricated sou
   assert.equal(result.axiomHits[0].confidence, "possible");
   assert.deepEqual(result.axiomHits[0].sourceQuotes, []);
   assert.match(result.axiomHits[0].basis, /could not be verified/);
+  const outlogic = evaluateOutlogic(result, {
+    institutionalRecord: "A quotation present in the institutional record.",
+    subjectVoice: "Subject account.",
+  });
+  assert.equal(outlogic.pass, false);
+  assert.equal(outlogic.decision, "REVIEW");
+});
+
+test("OUTLOGIC allows only provisional output when both channels and anchors are present", () => {
+  const payload: FindingPayload = {
+    stage: "DEEP_1",
+    claims: [{
+      source: "institutional_record",
+      epistemicStatus: "OBSERVED",
+      text: "The record date is 12. 9. 2025.",
+      attribution: "Institutional record",
+    }],
+    axiomHits: [],
+    narrativeGaps: [],
+    frameworkFlags: [],
+    prepNotes: [],
+  };
+  const result = evaluateOutlogic(payload, {
+    institutionalRecord: "The record date is 12. 9. 2025.",
+    subjectVoice: "I dispute the record's interpretation.",
+  });
+  assert.equal(result.pass, true);
+  assert.equal(result.decision, "ALLOW_PROVISIONAL");
+  assert.equal(result.provisionalOnly, true);
+  assert.equal(result.humanReviewRequired, true);
+});
+
+test("OUTLOGIC blocks a specific date that is absent from the attributed source", () => {
+  const payload: FindingPayload = {
+    stage: "DEEP_1",
+    claims: [{
+      source: "institutional_record",
+      epistemicStatus: "OBSERVED",
+      text: "The record date is 13. 9. 2025.",
+      attribution: "Institutional record",
+    }],
+    axiomHits: [],
+    narrativeGaps: [],
+    frameworkFlags: [],
+    prepNotes: [],
+  };
+  const result = evaluateOutlogic(payload, {
+    institutionalRecord: "The record date is 12. 9. 2025.",
+    subjectVoice: "I dispute the record's interpretation.",
+  });
+  assert.equal(result.pass, false);
+  assert.equal(result.decision, "REVIEW");
+  assert.equal(result.claims[0].status, "UNANCHORED_SPECIFICITY");
+  assert.equal(result.claims[0].epistemicStatus, "UNVERIFIED");
+});
+
+test("OUTLOGIC holds when one RULE_001 source channel is missing", () => {
+  const payload: FindingPayload = {
+    stage: "DEEP_1",
+    claims: [{
+      source: "institutional_record",
+      epistemicStatus: "OBSERVED",
+      text: "A plain statement.",
+      attribution: "Institutional record",
+    }],
+    axiomHits: [],
+    narrativeGaps: [],
+    frameworkFlags: [],
+    prepNotes: [],
+  };
+  const result = evaluateOutlogic(payload, {
+    institutionalRecord: "A plain statement.",
+    subjectVoice: "",
+  });
+  assert.equal(result.pass, false);
+  assert.equal(result.decision, "HOLD");
+  assert.deepEqual(result.sourceChannels.missing, ["subject_voice"]);
+  assert.ok(result.decisionStates.includes("VETO"));
+});
+
+test("partial quote support is downgraded and the unsupported quote is disclosed", () => {
+  const payload = {
+    stage: "DEEP_1" as const,
+    claims: [{
+      source: "institutional_record" as const,
+      epistemicStatus: "OBSERVED" as const,
+      text: "A quotation present in the institutional record.",
+      attribution: "Institutional record",
+    }],
+    axiomHits: [{
+      axiom: "A4" as const,
+      confidence: "strongly_supported" as const,
+      basis: "Model-supplied basis",
+      sourceQuotes: [
+        "A quotation present in the institutional record.",
+        "A quotation that does not exist in the source.",
+      ],
+    }],
+    narrativeGaps: [],
+    frameworkFlags: [],
+    prepNotes: [],
+  };
+  const result = verifyQuotedSupport(payload, {
+    institutionalRecord: "A quotation present in the institutional record.",
+    subjectVoice: "Subject account.",
+  });
+  assert.equal(result.axiomHits[0].confidence, "possible");
+  assert.deepEqual(result.axiomHits[0].sourceQuotes, [
+    "A quotation present in the institutional record.",
+  ]);
+  assert.match(result.axiomHits[0].basis, /1 quotation\(s\) were not retained/);
+  const outlogic = evaluateOutlogic(result, {
+    institutionalRecord: "A quotation present in the institutional record.",
+    subjectVoice: "Subject account.",
+  });
+  assert.equal(outlogic.pass, false);
+  assert.equal(outlogic.decision, "REVIEW");
+});
+
+test("OUTLOGIC fails closed on a paraphrase with no exact source anchor", () => {
+  const payload: FindingPayload = {
+    stage: "DEEP_1",
+    claims: [{
+      source: "institutional_record",
+      epistemicStatus: "REPORTED",
+      text: "The institution imposed a restriction after reviewing the file.",
+      attribution: "Institutional record",
+    }],
+    axiomHits: [],
+    narrativeGaps: [],
+    frameworkFlags: [],
+    prepNotes: [],
+  };
+  const result = evaluateOutlogic(payload, {
+    institutionalRecord: "A review of the file took place before the decision.",
+    subjectVoice: "I dispute the interpretation.",
+  });
+  assert.equal(result.pass, false);
+  assert.equal(result.decision, "REVIEW");
+  assert.equal(result.claims[0].status, "PARAPHRASE_UNVERIFIED");
+});
+
+
+test("claim schemas default missing epistemic labels to UNKNOWN", () => {
+  const claim = claimSchema.parse({
+    source: "institutional_record",
+    text: "An attributed statement.",
+    attribution: "Institutional record",
+  });
+  assert.equal(claim.epistemicStatus, "UNKNOWN");
 });

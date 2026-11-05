@@ -6,10 +6,22 @@ export type PipelineStage = z.infer<typeof pipelineStageSchema>;
 export const sourceKindSchema = z.enum(["institutional_record", "subject_voice"]);
 export type SourceKind = z.infer<typeof sourceKindSchema>;
 
+export const epistemicStatusSchema = z.enum([
+  "OBSERVED",
+  "REPORTED",
+  "INFERRED",
+  "DISPUTED",
+  "UNKNOWN",
+  "UNVERIFIED",
+]);
+export type EpistemicStatus = z.infer<typeof epistemicStatusSchema>;
+
 export const claimSchema = z.object({
   source: sourceKindSchema,
   text: z.string().min(1),
   attribution: z.string().min(1),
+  // Older clients that omit this state fail safely to UNKNOWN.
+  epistemicStatus: epistemicStatusSchema.default("UNKNOWN"),
 });
 
 export const axiomHitSchema = z.object({
