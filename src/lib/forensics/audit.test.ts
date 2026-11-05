@@ -153,7 +153,12 @@ test("OUTLOGIC holds when one RULE_001 source channel is missing", () => {
 test("partial quote support is downgraded and the unsupported quote is disclosed", () => {
   const payload = {
     stage: "DEEP_1" as const,
-    claims: [],
+    claims: [{
+      source: "institutional_record" as const,
+      epistemicStatus: "OBSERVED" as const,
+      text: "A quotation present in the institutional record.",
+      attribution: "Institutional record",
+    }],
     axiomHits: [{
       axiom: "A4" as const,
       confidence: "strongly_supported" as const,
@@ -176,6 +181,12 @@ test("partial quote support is downgraded and the unsupported quote is disclosed
     "A quotation present in the institutional record.",
   ]);
   assert.match(result.axiomHits[0].basis, /1 quotation\(s\) were not retained/);
+  const outlogic = evaluateOutlogic(result, {
+    institutionalRecord: "A quotation present in the institutional record.",
+    subjectVoice: "Subject account.",
+  });
+  assert.equal(outlogic.pass, false);
+  assert.equal(outlogic.decision, "REVIEW");
 });
 
 test("OUTLOGIC fails closed on a paraphrase with no exact source anchor", () => {
