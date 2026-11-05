@@ -142,6 +142,7 @@ export function evaluateOutlogic(
       "Exact text and specific-anchor checks are not semantic entailment.",
       "A source match does not establish authenticity, authorship, completeness, or factual truth.",
       "A paraphrase may be related to a source without being an exact text match.",
+      "Quote support currently checks the combined A+B corpus because the current schema has no quote-level source attribution; claim-specific anchors are checked against the declared source channel.",
       "Causal, clinical, legal, and intent conclusions require separate human and source review.",
       "ALLOW_PROVISIONAL is not certification and is not a finding of truth.",
     ],
