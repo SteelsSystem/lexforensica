@@ -72,6 +72,7 @@ test("OUTLOGIC allows only provisional output when both channels and anchors are
     stage: "DEEP_1",
     claims: [{
       source: "institutional_record",
+      epistemicStatus: "OBSERVED",
       text: "The record date is 12. 9. 2025.",
       attribution: "Institutional record",
     }],
@@ -95,6 +96,7 @@ test("OUTLOGIC blocks a specific date that is absent from the attributed source"
     stage: "DEEP_1",
     claims: [{
       source: "institutional_record",
+      epistemicStatus: "OBSERVED",
       text: "The record date is 13. 9. 2025.",
       attribution: "Institutional record",
     }],
@@ -117,6 +119,7 @@ test("OUTLOGIC holds when one RULE_001 source channel is missing", () => {
     stage: "DEEP_1",
     claims: [{
       source: "institutional_record",
+      epistemicStatus: "OBSERVED",
       text: "A plain statement.",
       attribution: "Institutional record",
     }],
@@ -168,6 +171,7 @@ test("OUTLOGIC fails closed on a paraphrase with no exact source anchor", () => 
     stage: "DEEP_1",
     claims: [{
       source: "institutional_record",
+      epistemicStatus: "REPORTED",
       text: "The institution imposed a restriction after reviewing the file.",
       attribution: "Institutional record",
     }],
