@@ -46,7 +46,12 @@ import { verifyQuotedSupport } from "../../routes/api/chat";
 test("unverifiable model hits remain visible as possible, without fabricated source quotes", () => {
   const payload = {
     stage: "DEEP_1" as const,
-    claims: [],
+    claims: [{
+      source: "institutional_record" as const,
+      epistemicStatus: "OBSERVED" as const,
+      text: "A quotation present in the institutional record.",
+      attribution: "Institutional record",
+    }],
     axiomHits: [{
       axiom: "A4" as const,
       confidence: "strongly_supported" as const,
@@ -65,6 +70,12 @@ test("unverifiable model hits remain visible as possible, without fabricated sou
   assert.equal(result.axiomHits[0].confidence, "possible");
   assert.deepEqual(result.axiomHits[0].sourceQuotes, []);
   assert.match(result.axiomHits[0].basis, /could not be verified/);
+  const outlogic = evaluateOutlogic(result, {
+    institutionalRecord: "A quotation present in the institutional record.",
+    subjectVoice: "Subject account.",
+  });
+  assert.equal(outlogic.pass, false);
+  assert.equal(outlogic.decision, "REVIEW");
 });
 
 test("OUTLOGIC allows only provisional output when both channels and anchors are present", () => {
@@ -188,4 +199,15 @@ test("OUTLOGIC fails closed on a paraphrase with no exact source anchor", () => 
   assert.equal(result.pass, false);
   assert.equal(result.decision, "REVIEW");
   assert.equal(result.claims[0].status, "PARAPHRASE_UNVERIFIED");
+});
+
+import { claimSchema } from "./schema";
+
+test("claim schemas default missing epistemic labels to UNKNOWN", () => {
+  const claim = claimSchema.parse({
+    source: "institutional_record",
+    text: "An attributed statement.",
+    attribution: "Institutional record",
+  });
+  assert.equal(claim.epistemicStatus, "UNKNOWN");
 });
