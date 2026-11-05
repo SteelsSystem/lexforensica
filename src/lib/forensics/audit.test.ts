@@ -112,6 +112,7 @@ test("OUTLOGIC blocks a specific date that is absent from the attributed source"
   assert.equal(result.pass, false);
   assert.equal(result.decision, "REVIEW");
   assert.equal(result.claims[0].status, "UNANCHORED_SPECIFICITY");
+  assert.equal(result.claims[0].epistemicStatus, "UNVERIFIED");
 });
 
 test("OUTLOGIC holds when one RULE_001 source channel is missing", () => {
