@@ -76,7 +76,22 @@ chatRouter.post("/", async (req, res) => {
               type: Type.OBJECT,
               properties: {
                 stage: { type: Type.STRING },
-                claims: { type: Type.ARRAY, items: { type: Type.OBJECT } },
+                claims: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      source: { type: Type.STRING, enum: ["institutional_record", "subject_voice"] },
+                      text: { type: Type.STRING },
+                      attribution: { type: Type.STRING },
+                      epistemicStatus: {
+                        type: Type.STRING,
+                        enum: ["OBSERVED", "REPORTED", "INFERRED", "DISPUTED", "UNKNOWN", "UNVERIFIED"],
+                      },
+                    },
+                    required: ["source", "text", "attribution", "epistemicStatus"],
+                  },
+                },
                 axiomHits: { type: Type.ARRAY, items: { type: Type.OBJECT } },
                 narrativeGaps: { type: Type.ARRAY, items: { type: Type.OBJECT } },
                 frameworkFlags: { type: Type.ARRAY, items: { type: Type.OBJECT } },
