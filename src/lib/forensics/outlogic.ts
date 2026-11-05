@@ -17,6 +17,7 @@ export interface OutlogicReport {
   claims: Array<{
     index: number;
     source: SourceKind;
+    epistemicStatus: "OBSERVED" | "REPORTED" | "INFERRED" | "DISPUTED" | "UNKNOWN" | "UNVERIFIED";
     exactTextMatched: boolean;
     specificAnchors: string[];
     unsupportedAnchors: string[];
@@ -94,6 +95,7 @@ export function evaluateOutlogic(
     return {
       index,
       source: claim.source,
+      epistemicStatus: claim.epistemicStatus,
       exactTextMatched,
       specificAnchors,
       unsupportedAnchors,
@@ -147,6 +149,7 @@ export function evaluateOutlogic(
       "A source match does not establish authenticity, authorship, completeness, or factual truth.",
       "Paraphrase claims remain PARAPHRASE_UNVERIFIED and fail the provisional defense gate until source support is made explicit.",
       "Quote support currently checks the combined A+B corpus because the current schema has no quote-level source attribution; claim-specific anchors are checked against the declared source channel.",
+      "Epistemic labels are model-proposed classifications and still require human review.",
       "Causal, clinical, legal, and intent conclusions require separate human and source review.",
       "ALLOW_PROVISIONAL is not certification and is not a finding of truth.",
     ],
