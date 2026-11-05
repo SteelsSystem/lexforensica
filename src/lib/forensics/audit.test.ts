@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { deriveSelfAudit } from "./audit";
+import { evaluateOutlogic } from "./outlogic";
+import type { FindingPayload } from "./schema";
 
 const noChecks = {
   dignityPriority: false,
@@ -63,4 +65,72 @@ test("unverifiable model hits remain visible as possible, without fabricated sou
   assert.equal(result.axiomHits[0].confidence, "possible");
   assert.deepEqual(result.axiomHits[0].sourceQuotes, []);
   assert.match(result.axiomHits[0].basis, /could not be verified/);
+});
+
+test("OUTLOGIC allows only provisional output when both channels and anchors are present", () => {
+  const payload: FindingPayload = {
+    stage: "DEEP_1",
+    claims: [{
+      source: "institutional_record",
+      text: "The record date is 12. 9. 2025.",
+      attribution: "Institutional record",
+    }],
+    axiomHits: [],
+    narrativeGaps: [],
+    frameworkFlags: [],
+    prepNotes: [],
+  };
+  const result = evaluateOutlogic(payload, {
+    institutionalRecord: "The record date is 12. 9. 2025.",
+    subjectVoice: "I dispute the record's interpretation.",
+  });
+  assert.equal(result.pass, true);
+  assert.equal(result.decision, "ALLOW_PROVISIONAL");
+  assert.equal(result.provisionalOnly, true);
+  assert.equal(result.humanReviewRequired, true);
+});
+
+test("OUTLOGIC blocks a specific date that is absent from the attributed source", () => {
+  const payload: FindingPayload = {
+    stage: "DEEP_1",
+    claims: [{
+      source: "institutional_record",
+      text: "The record date is 13. 9. 2025.",
+      attribution: "Institutional record",
+    }],
+    axiomHits: [],
+    narrativeGaps: [],
+    frameworkFlags: [],
+    prepNotes: [],
+  };
+  const result = evaluateOutlogic(payload, {
+    institutionalRecord: "The record date is 12. 9. 2025.",
+    subjectVoice: "I dispute the record's interpretation.",
+  });
+  assert.equal(result.pass, false);
+  assert.equal(result.decision, "REVIEW");
+  assert.equal(result.claims[0].status, "UNANCHORED_SPECIFICITY");
+});
+
+test("OUTLOGIC holds when one RULE_001 source channel is missing", () => {
+  const payload: FindingPayload = {
+    stage: "DEEP_1",
+    claims: [{
+      source: "institutional_record",
+      text: "A plain statement.",
+      attribution: "Institutional record",
+    }],
+    axiomHits: [],
+    narrativeGaps: [],
+    frameworkFlags: [],
+    prepNotes: [],
+  };
+  const result = evaluateOutlogic(payload, {
+    institutionalRecord: "A plain statement.",
+    subjectVoice: "",
+  });
+  assert.equal(result.pass, false);
+  assert.equal(result.decision, "HOLD");
+  assert.deepEqual(result.sourceChannels.missing, ["subject_voice"]);
+  assert.ok(result.decisionStates.includes("VETO"));
 });
